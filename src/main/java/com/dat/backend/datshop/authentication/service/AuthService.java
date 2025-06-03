@@ -1,10 +1,11 @@
 package com.dat.backend.datshop.authentication.service;
 
 import com.dat.backend.datshop.authentication.dto.LoginRequest;
-import com.dat.backend.datshop.authentication.dto.AuthResponse;
+import com.dat.backend.datshop.authentication.dto.LoginResponse;
+import com.dat.backend.datshop.authentication.dto.RegisterRequest;
 
 public interface AuthService {
-    AuthResponse login(LoginRequest loginRequest);
+    LoginResponse login(LoginRequest loginRequest);
 
-    AuthResponse register(LoginRequest registerRequest);
+    String register(RegisterRequest registerRequest);
 }

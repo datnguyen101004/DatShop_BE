@@ -1,10 +1,10 @@
 package com.dat.backend.datshop.authentication.controller;
 
 import com.dat.backend.datshop.authentication.dto.LoginRequest;
-import com.dat.backend.datshop.authentication.dto.AuthResponse;
+import com.dat.backend.datshop.authentication.dto.LoginResponse;
+import com.dat.backend.datshop.authentication.dto.RegisterRequest;
 import com.dat.backend.datshop.authentication.service.AuthService;
 import com.dat.backend.datshop.response.ApiResponse;
-import com.dat.backend.datshop.user.dto.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,13 +18,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ApiResponse<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ApiResponse<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
         return ApiResponse.success(authService.login(loginRequest));
     }
 
     // Register will redirect to home endpoint. Using same response structure as login for consistency.
     @PostMapping("/register")
-    public ApiResponse<AuthResponse> register(@RequestBody LoginRequest registerRequest) {
+    public ApiResponse<String> register(@RequestBody RegisterRequest registerRequest) {
         return ApiResponse.success(authService.register(registerRequest));
     }
 

@@ -30,7 +30,7 @@ public class User {
     private String address;
     @Enumerated(jakarta.persistence.EnumType.STRING)
     private UserRole role;
-    private boolean isActive = false;
+    private boolean isActive;
     private String avatarUrl;
 
     @CreationTimestamp

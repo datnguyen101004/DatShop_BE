@@ -13,9 +13,9 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     @Override
-    public UserResponse getProfile(Long userId) {
+    public UserResponse getProfile(String email) {
         // Get user by ID
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return userMapper.toUserResponse(user);

@@ -1,6 +1,7 @@
 package com.dat.backend.datshop.authentication.config;
 
 import com.dat.backend.datshop.authentication.service.UserAuthService;
+import com.dat.backend.datshop.user.role.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -61,7 +62,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/webjars/**",
                                 "/swagger-ui.html").permitAll()
-                        .requestMatchers("api/v1/user/**", "api/v1/shop/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                        .requestMatchers("api/v1/user/**", "api/v1/shop/**").hasAnyAuthority(String.valueOf(UserRole.USER), String.valueOf(UserRole.ADMIN))
                         .requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated())
                 .sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
