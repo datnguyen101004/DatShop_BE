@@ -1,0 +1,44 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  datasource:
+    url: jdbc:mysql://${DATABASE_URL}/datsocial?sessionVariables=sql_mode='NO_ENGINE_SUBSTITUTION'&jdbcCompliantTruncation=false
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+#  data:
+#    redis:
+#      host: localhost
+#      port: 6379
+#  session:
+#    store-type: redis
+  main:
+    allow-circular-references: true
+#  mail:
+#    port: 587
+#    host: smtp.gmail.com
+#    username: ${MAIL_USERNAME}
+#    password: ${MAIL_PASSWORD}
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          google:
+#            client-id: ${OAUTH2_GOOGLE_CLIENT_ID}
+#            client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET}
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+  expiredAccess: ${JWT_EXPIRED_ACCESS}
+  expiredRefresh: ${JWT_EXPIRED_REFRESH}

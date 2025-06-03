@@ -31,6 +31,7 @@ public class User {
     @Enumerated(jakarta.persistence.EnumType.STRING)
     private UserRole role;
     private boolean isActive = false;
+    private String avatarUrl;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
