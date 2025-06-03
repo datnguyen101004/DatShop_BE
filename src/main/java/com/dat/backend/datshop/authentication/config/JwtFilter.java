@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -18,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 @EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
@@ -36,9 +38,11 @@ public class JwtFilter extends OncePerRequestFilter {
         var jwt = authHeader.substring(7);
         try {
             var username = jwtService.extractUsername(jwt);
+            log.info("Username extracted from JWT: {}", username);
             if (username != null) {
                 UserDetails userDetails = userAuthService.loadUserByUsername(username);
                 if (jwtService.isTokenValid(jwt, userDetails) && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    log.info("JWT is valid for user: {}", username);
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
