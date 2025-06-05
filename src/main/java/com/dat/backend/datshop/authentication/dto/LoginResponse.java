@@ -1,17 +1,14 @@
 package com.dat.backend.datshop.authentication.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class LoginResponse {
-    private String accessToken;
-    private String refreshToken;
+@SuperBuilder
+public class LoginResponse extends TokenResponse {
     private Long userId;
     private String email;
     private String name;
