@@ -3,6 +3,7 @@ package com.dat.backend.datshop.authentication.controller;
 import com.dat.backend.datshop.authentication.dto.LoginRequest;
 import com.dat.backend.datshop.authentication.dto.LoginResponse;
 import com.dat.backend.datshop.authentication.dto.RegisterRequest;
+import com.dat.backend.datshop.authentication.dto.TokenResponse;
 import com.dat.backend.datshop.authentication.service.AuthService;
 import com.dat.backend.datshop.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,19 @@ public class AuthController {
     @PostMapping("/register")
     public ApiResponse<String> register(@RequestBody RegisterRequest registerRequest) {
         return ApiResponse.success(authService.register(registerRequest));
+    }
+
+    // Logout
+    @PostMapping("/logout")
+    public ApiResponse<String> logout() {
+        // Implement redis to manage jwt token
+        return ApiResponse.success("Logout successful");
+    }
+
+    //Refresh token
+    @PostMapping("/refresh")
+    public ApiResponse<TokenResponse> refreshToken(@RequestBody String refreshToken) {
+        return ApiResponse.success(authService.refreshToken(refreshToken));
     }
 
 }

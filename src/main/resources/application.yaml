@@ -42,3 +42,11 @@ jwt:
   secret-key: ${JWT_SECRET_KEY}
   expiredAccess: ${JWT_EXPIRED_ACCESS}
   expiredRefresh: ${JWT_EXPIRED_REFRESH}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    csrf:
+      enabled: true
+    path: /swagger-ui.html

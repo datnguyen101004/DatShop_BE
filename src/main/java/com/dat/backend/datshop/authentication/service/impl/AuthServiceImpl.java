@@ -3,6 +3,7 @@ package com.dat.backend.datshop.authentication.service.impl;
 import com.dat.backend.datshop.authentication.dto.LoginRequest;
 import com.dat.backend.datshop.authentication.dto.LoginResponse;
 import com.dat.backend.datshop.authentication.dto.RegisterRequest;
+import com.dat.backend.datshop.authentication.dto.TokenResponse;
 import com.dat.backend.datshop.authentication.service.AuthService;
 import com.dat.backend.datshop.authentication.service.JwtService;
 import com.dat.backend.datshop.user.entity.User;
@@ -55,6 +56,32 @@ public class AuthServiceImpl implements AuthService {
         // Send activation email
         // TODO: Implement email sending logic here
         return "Registration successful. Please check your email to activate your account.";
+    }
+
+    @Override
+    public TokenResponse refreshToken(String refreshToken) {
+        // Implement redis to blacklist JWT accessToken
+        log.info("Refreshing token for access token: {}", refreshToken);
+
+        // Validate refresh token
+        String email = jwtService.extractUsername(refreshToken);
+        // Check if refresh token is expired
+        if (jwtService.isTokenExpired(refreshToken)) {
+            log.warn("Refresh token expired");
+            throw new RuntimeException("Refresh token expired");
+        }
+        // Check if user not exists
+        if (email == null || userRepository.findByEmail(email).isEmpty()) {
+            log.warn("Invalid refresh token for email: {}", email);
+            throw new RuntimeException("Invalid refresh token");
+        }
+        // Generate new access token
+        String newAccessToken = jwtService.generateAccessToken(email);
+        log.info("Generated new access token for user: {}", email);
+        return TokenResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(refreshToken) // Assuming refresh token remains the same
+                .build();
     }
 
     @Override
