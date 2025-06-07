@@ -17,5 +17,5 @@ public class ProductResponse {
     private double price;
     private int stockQuantity;
     private String category;
-    private String author;
+    private Long authorId;
 }

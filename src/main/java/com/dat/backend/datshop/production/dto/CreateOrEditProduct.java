@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreateProduct {
+public class CreateOrEditProduct {
     private String name;
     private String description;
     private String imageUrl;
