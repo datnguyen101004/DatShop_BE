@@ -23,7 +23,5 @@ public class Product {
     private Integer stockQuantity;
     private String category;
 
-    @ManyToOne
-    @JoinColumn(name = "author_id", referencedColumnName = "id")
-    private User author;
+    private Long authorId;
 }

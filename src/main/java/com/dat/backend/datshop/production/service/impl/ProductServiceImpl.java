@@ -1,19 +1,23 @@
 package com.dat.backend.datshop.production.service.impl;
 
-import com.dat.backend.datshop.production.dto.CreateProduct;
+import com.dat.backend.datshop.production.dto.CreateOrEditProduct;
 import com.dat.backend.datshop.production.dto.ProductResponse;
 import com.dat.backend.datshop.production.entity.Product;
 import com.dat.backend.datshop.production.mapper.ProductMapper;
 import com.dat.backend.datshop.production.repository.ProductRepository;
 import com.dat.backend.datshop.production.service.ProductService;
 import com.dat.backend.datshop.user.entity.User;
+import com.dat.backend.datshop.user.entity.UserProduct;
+import com.dat.backend.datshop.user.repository.UserProductRepository;
 import com.dat.backend.datshop.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -22,27 +26,39 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final UserRepository userRepository;
+    private final UserProductRepository userProductRepository;
 
     @Override
-    public ProductResponse addProduct(CreateProduct createProduct, String email) {
-        log.info("Adding product: {}", createProduct.getName());
+    @Transactional
+    public ProductResponse addProduct(CreateOrEditProduct createOrEditProduct, String email) {
+        log.info("Adding product: {}", createOrEditProduct.getName());
+
+        // fetch user by email
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-        Product product = new Product();
-        product = productMapper.createProductToProduct(createProduct);
-        product.setAuthor(user);
+
+        // Add product to product table
+        Product product = productMapper.createProductToProduct(createOrEditProduct);
+        product.setAuthorId(user.getId());
         productRepository.save(product);
+
+        //Add product to user's product table
+        UserProduct userProduct = new UserProduct();
+        userProduct.setUserId(user.getId());
+        userProduct.setProductId(product.getId());
+
+        userProductRepository.save(userProduct);
+
+        // Log product addition
         log.info("Product added successfully: {}", product.getName());
         log.info("Author: {}", user.getEmail());
-        ProductResponse productResponse = productMapper.productToProductResponse(product);
-        productResponse.setAuthor(email);
-        return productResponse;
+        return productMapper.productToProductResponse(product);
     }
 
     @Override
-    public ProductResponse getProductById(Long id) {
-        log.info("Fetching product with ID: {}", id);
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
+    public ProductResponse getProductById(Long productId) {
+        log.info("Fetching product with ID: {}", productId);
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
         log.info("Product found: {}", product.getName());
         return productMapper.productToProductResponse(product);
     }
@@ -61,5 +77,53 @@ public class ProductServiceImpl implements ProductService {
         }
         log.info("No products found");
         return new ArrayList<>();
+    }
+
+    @Override
+    @Transactional
+    public String deleteProductById(Long productId, String email) {
+        // fetch user and product
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
+
+        // Check authorization
+        if (!Objects.equals(product.getAuthorId(), user.getId())) {
+            log.warn("User {} is not authorized to delete product with ID: {}", email, productId);
+            throw new RuntimeException("You are not authorized to delete this product");
+        }
+
+        // if authorized, delete product in product table and user product table
+        productRepository.deleteById(productId);
+        userProductRepository.deleteByProductIdAndUserId(productId, user.getId());
+        return "Deleted product with ID: " + productId + " successfully";
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse updateProductById(Long productId, CreateOrEditProduct createOrEditProduct, String email) {
+        // fetch user and product
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
+
+        // Check authorization
+        if (!Objects.equals(product.getAuthorId(), user.getId())) {
+            log.warn("User {} is not authorized to update product with ID: {}", email, productId);
+            throw new RuntimeException("You are not authorized to update this product");
+        }
+
+        // Update product details
+        product.setName(createOrEditProduct.getName());
+        product.setDescription(createOrEditProduct.getDescription());
+        product.setPrice(createOrEditProduct.getPrice());
+        product.setImageUrl(createOrEditProduct.getImageUrl());
+        product.setCategory(createOrEditProduct.getCategory());
+        productRepository.save(product);
+        log.info("Product with ID: {} updated successfully by user: {}", productId, email);
+
+        return productMapper.productToProductResponse(product);
     }
 }
