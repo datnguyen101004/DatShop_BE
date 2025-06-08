@@ -1,8 +1,7 @@
 package com.dat.backend.datshop.cart.controller;
 
-import com.dat.backend.datshop.cart.dto.AddProduct;
+import com.dat.backend.datshop.cart.dto.AddOrRemoveProduct;
 import com.dat.backend.datshop.cart.dto.CartResponse;
-import com.dat.backend.datshop.cart.entity.CartItem;
 import com.dat.backend.datshop.cart.service.CartService;
 import com.dat.backend.datshop.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +16,8 @@ public class CartController {
 
     // Add product to cart
     @PostMapping("/add")
-    public ApiResponse<String> addProductToCart(@RequestBody AddProduct addProduct, Authentication authentication) {
-        return ApiResponse.success(cartService.addProductToCart(addProduct, authentication.getName()));
+    public ApiResponse<String> addProductToCart(@RequestBody AddOrRemoveProduct addOrRemoveProduct, Authentication authentication) {
+        return ApiResponse.success(cartService.addProductToCart(addOrRemoveProduct, authentication.getName()));
     }
 
     // Get cart of user
@@ -27,4 +26,9 @@ public class CartController {
         return ApiResponse.success(cartService.getCart(authentication.getName()));
     }
 
+    // Remove product from cart
+    @DeleteMapping("/remove")
+    public ApiResponse<String> removeProductFromCart(@RequestBody AddOrRemoveProduct addOrRemoveProduct, Authentication authentication) {
+       return ApiResponse.success(cartService.removeProductFromCart(addOrRemoveProduct, authentication.getName()));
+    }
 }

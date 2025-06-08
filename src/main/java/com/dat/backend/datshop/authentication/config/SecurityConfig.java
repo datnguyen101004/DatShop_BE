@@ -1,7 +1,7 @@
 package com.dat.backend.datshop.authentication.config;
 
 import com.dat.backend.datshop.authentication.service.UserAuthService;
-import com.dat.backend.datshop.user.role.UserRole;
+import com.dat.backend.datshop.user.entity.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

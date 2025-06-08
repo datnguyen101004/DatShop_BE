@@ -8,7 +8,7 @@ import com.dat.backend.datshop.authentication.service.AuthService;
 import com.dat.backend.datshop.authentication.service.JwtService;
 import com.dat.backend.datshop.user.entity.User;
 import com.dat.backend.datshop.user.repository.UserRepository;
-import com.dat.backend.datshop.user.role.UserRole;
+import com.dat.backend.datshop.user.entity.UserRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
