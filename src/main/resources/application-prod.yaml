@@ -9,3 +9,10 @@ jwt:
   secret-key: ${JWT_SECRET_KEY}
   expiredAccess: ${JWT_EXPIRED_ACCESS}
   expiredRefresh: ${JWT_EXPIRED_REFRESH}
+
+vnpay:
+  vnp_TmnCode: ${VNP_TMN_CODE}
+  vnp_HashSecret: ${VNP_HASH_SECRET}
+  vnp_PayUrl: ${VNP_PAYMENT_URL}
+  vnp_ReturnUrl: ${VNP_RETURN_URL}
+  vnp_ApiUrl: ${VNP_RESULT_URL}

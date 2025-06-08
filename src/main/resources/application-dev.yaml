@@ -9,3 +9,10 @@ jwt:
   secret-key: 'Y0doaGJXNW5kWGxsYm5SaGRHUmhkR0YwZEhReU1ESTBMakU9'
   expiredAccess: '1h'
   expiredRefresh: '1d'
+
+vnpay:
+  vnp_TmnCode: HKWI8F58
+  vnp_HashSecret: OA2CVXXOZBUHR79CE553QD3ZXXOHQ5YC
+  vnp_PayUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  vnp_ReturnUrl: https://localhost/vnpay_php/vnpay_return.php
+  vnp_ApiUrl: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction

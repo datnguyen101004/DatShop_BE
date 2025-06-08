@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.user.role;
+package com.dat.backend.datshop.user.entity;
 
 public enum UserRole {
     USER,

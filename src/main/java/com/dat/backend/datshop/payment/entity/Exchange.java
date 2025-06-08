@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.user.entity;
+package com.dat.backend.datshop.payment.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
@@ -12,26 +12,22 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-@Entity(name = "user")
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class User {
-
+@Entity(name = "exchange")
+public class Exchange {
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     private Long id;
-    private String email;
-    private String password;
-    private String name;
-    private String phoneNumber;
-    private String address;
-    @Enumerated(jakarta.persistence.EnumType.STRING)
-    private UserRole role;
-    private boolean isActive;
-    private String avatarUrl;
-    private Double moneyBalance = 0.0;
+
+    private Long userId;
+    private Double price;
+    private String description;
+
+    @Enumerated(value = jakarta.persistence.EnumType.STRING)
+    private ExchangeStatus status;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
