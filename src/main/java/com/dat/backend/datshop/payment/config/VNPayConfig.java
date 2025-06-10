@@ -32,7 +32,7 @@ public class VNPayConfig {
         vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", "A" + System.currentTimeMillis());
-        vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang mua hang tai cua hang ABC");
+        vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang mua hang tai cua hang Dat Shop");
         vnp_Params.put("vnp_OrderType", "billpayment");
         vnp_Params.put("vnp_Locale", "vn");
         vnp_Params.put("vnp_ReturnUrl", vnp_returnUrl);

@@ -1,8 +1,12 @@
-package com.dat.backend.datshop.payment.service;
+package com.dat.backend.datshop.payment.service.impl;
 
 import com.dat.backend.datshop.payment.config.VNPayConfig;
+import com.dat.backend.datshop.payment.dto.BillResponse;
+import com.dat.backend.datshop.payment.dto.PayRequest;
+import com.dat.backend.datshop.payment.service.VNPayService;
 import com.dat.backend.datshop.payment.util.VNPayUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +17,10 @@ import java.util.Map;
 public class VNPayServiceImpl implements VNPayService {
     private final VNPayConfig vnPayConfig;
 
-    public String createPayment(Long amount, HttpServletRequest request) {
+    @Transactional
+    public BillResponse createPayment(PayRequest payRequest, HttpServletRequest request, String email) {
+        // Fetch amount from PayRequest
+
         String ipAddr = VNPayUtil.getIpAddr(request);
         Map<String, String> vnpParamsMap = vnPayConfig.createVnPayUrl();
         vnpParamsMap.put("vnp_Amount", String.valueOf(amount*100L));

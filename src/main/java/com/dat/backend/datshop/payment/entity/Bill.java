@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity(name = "exchange")
-public class Exchange {
+public class Bill {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     private Long id;
@@ -27,7 +27,7 @@ public class Exchange {
     private String description;
 
     @Enumerated(value = jakarta.persistence.EnumType.STRING)
-    private ExchangeStatus status;
+    private BillStatus status;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
