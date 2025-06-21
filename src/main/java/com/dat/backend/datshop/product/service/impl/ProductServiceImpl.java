@@ -1,14 +1,12 @@
-package com.dat.backend.datshop.production.service.impl;
+package com.dat.backend.datshop.product.service.impl;
 
-import com.dat.backend.datshop.production.dto.CreateOrEditProduct;
-import com.dat.backend.datshop.production.dto.ProductResponse;
-import com.dat.backend.datshop.production.entity.Product;
-import com.dat.backend.datshop.production.mapper.ProductMapper;
-import com.dat.backend.datshop.production.repository.ProductRepository;
-import com.dat.backend.datshop.production.service.ProductService;
+import com.dat.backend.datshop.product.dto.ActionToProduct;
+import com.dat.backend.datshop.product.dto.ProductResponse;
+import com.dat.backend.datshop.product.entity.Product;
+import com.dat.backend.datshop.product.mapper.ProductMapper;
+import com.dat.backend.datshop.product.repository.ProductRepository;
+import com.dat.backend.datshop.product.service.ProductService;
 import com.dat.backend.datshop.user.entity.User;
-import com.dat.backend.datshop.user.entity.UserProduct;
-import com.dat.backend.datshop.user.repository.UserProductRepository;
 import com.dat.backend.datshop.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,27 +24,19 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
     private final UserRepository userRepository;
-    private final UserProductRepository userProductRepository;
 
     @Override
     @Transactional
-    public ProductResponse addProduct(CreateOrEditProduct createOrEditProduct, String email) {
-        log.info("Adding product: {}", createOrEditProduct.getName());
+    public ProductResponse addProduct(ActionToProduct actionToProduct, String email) {
+        log.info("Adding product: {}", actionToProduct.getName());
 
         // fetch user by email
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
         // Add product to product table
-        Product product = productMapper.createProductToProduct(createOrEditProduct);
-        product.setAuthorId(user.getId());
+        Product product = productMapper.createProductToProduct(actionToProduct);
+        product.setAuthor(user);
         productRepository.save(product);
-
-        //Add product to user's product table
-        UserProduct userProduct = new UserProduct();
-        userProduct.setUserId(user.getId());
-        userProduct.setProductId(product.getId());
-
-        userProductRepository.save(userProduct);
 
         // Log product addition
         log.info("Product added successfully: {}", product.getName());
@@ -89,20 +79,19 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
 
         // Check authorization
-        if (!Objects.equals(product.getAuthorId(), user.getId())) {
+        if (!Objects.equals(product.getAuthor(), user)) {
             log.warn("User {} is not authorized to delete product with ID: {}", email, productId);
             throw new RuntimeException("You are not authorized to delete this product");
         }
 
         // if authorized, delete product in product table and user product table
         productRepository.deleteById(productId);
-        userProductRepository.deleteByProductIdAndUserId(productId, user.getId());
         return "Deleted product with ID: " + productId + " successfully";
     }
 
     @Override
     @Transactional
-    public ProductResponse updateProductById(Long productId, CreateOrEditProduct createOrEditProduct, String email) {
+    public ProductResponse updateProductById(Long productId, ActionToProduct actionToProduct, String email) {
         // fetch user and product
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
@@ -110,17 +99,17 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
 
         // Check authorization
-        if (!Objects.equals(product.getAuthorId(), user.getId())) {
+        if (!Objects.equals(product.getAuthor(), user)) {
             log.warn("User {} is not authorized to update product with ID: {}", email, productId);
             throw new RuntimeException("You are not authorized to update this product");
         }
 
         // Update product details
-        product.setName(createOrEditProduct.getName());
-        product.setDescription(createOrEditProduct.getDescription());
-        product.setPrice(createOrEditProduct.getPrice());
-        product.setImageUrl(createOrEditProduct.getImageUrl());
-        product.setCategory(createOrEditProduct.getCategory());
+        product.setName(actionToProduct.getName());
+        product.setDescription(actionToProduct.getDescription());
+        product.setPrice(actionToProduct.getPrice());
+        product.setImageUrl(actionToProduct.getImageUrl());
+        product.setCategory(actionToProduct.getCategory());
         productRepository.save(product);
         log.info("Product with ID: {} updated successfully by user: {}", productId, email);
 

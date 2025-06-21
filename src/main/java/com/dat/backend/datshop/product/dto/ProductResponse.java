@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.production.dto;
+package com.dat.backend.datshop.product.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
