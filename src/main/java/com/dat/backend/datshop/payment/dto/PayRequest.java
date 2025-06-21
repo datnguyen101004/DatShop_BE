@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class PayRequest {
-    private double amount;
-    private
+    private int quantity;
+    private Long productId;
 }

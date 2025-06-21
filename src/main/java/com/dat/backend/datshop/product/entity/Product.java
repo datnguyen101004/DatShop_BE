@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.production.entity;
+package com.dat.backend.datshop.product.entity;
 
 import com.dat.backend.datshop.user.entity.User;
 import jakarta.persistence.*;
@@ -23,5 +23,6 @@ public class Product {
     private Integer stockQuantity;
     private String category;
 
-    private Long authorId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private User author;
 }

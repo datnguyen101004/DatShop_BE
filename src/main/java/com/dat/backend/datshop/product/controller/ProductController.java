@@ -1,8 +1,8 @@
-package com.dat.backend.datshop.production.controller;
+package com.dat.backend.datshop.product.controller;
 
-import com.dat.backend.datshop.production.dto.CreateOrEditProduct;
-import com.dat.backend.datshop.production.dto.ProductResponse;
-import com.dat.backend.datshop.production.service.ProductService;
+import com.dat.backend.datshop.product.dto.ActionToProduct;
+import com.dat.backend.datshop.product.dto.ProductResponse;
+import com.dat.backend.datshop.product.service.ProductService;
 import com.dat.backend.datshop.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -16,10 +16,14 @@ import java.util.List;
 public class ProductController {
     private final ProductService productService;
 
+    /**
+     * Action to manage products in the shop for shopper roles.
+     */
+
     // Add new product
     @PostMapping("/add")
-    public ApiResponse<ProductResponse> addProduct(@RequestBody CreateOrEditProduct createOrEditProduct, Authentication authentication) {
-        return ApiResponse.success(productService.addProduct(createOrEditProduct, authentication.getName()));
+    public ApiResponse<ProductResponse> addProduct(@RequestBody ActionToProduct addProduct, Authentication authentication) {
+        return ApiResponse.success(productService.addProduct(addProduct, authentication.getName()));
     }
 
     // Get product by ID
@@ -43,8 +47,8 @@ public class ProductController {
     // Update product by ID
     @PutMapping("/edit/{id}")
     public ApiResponse<ProductResponse> updateProductById(@PathVariable("id") Long productId,
-                                                           @RequestBody CreateOrEditProduct createOrEditProduct,
+                                                           @RequestBody ActionToProduct actionToProduct,
                                                            Authentication authentication) {
-        return ApiResponse.success(productService.updateProductById(productId, createOrEditProduct, authentication.getName()));
+        return ApiResponse.success(productService.updateProductById(productId, actionToProduct, authentication.getName()));
     }
 }

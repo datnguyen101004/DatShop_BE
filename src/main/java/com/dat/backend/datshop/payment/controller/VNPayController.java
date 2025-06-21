@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/user/payment/vnpay")
 @RequiredArgsConstructor
@@ -16,10 +18,10 @@ public class VNPayController {
     private final VNPayService vnpayService;
 
     @PostMapping("/create-payment-url")
-    public ApiResponse<BillResponse> createPaymentUrl(@RequestBody PayRequest payRequest,
+    public ApiResponse<BillResponse> createPaymentUrl(@RequestBody List<PayRequest> payRequestList,
                                                       HttpServletRequest request,
                                                       Authentication authentication) {
-        return ApiResponse.success(vnpayService.createPayment(payRequest, request, authentication.getName()));
+        return ApiResponse.success(vnpayService.createPayment(payRequestList, request, authentication.getName()));
     }
 
     @GetMapping("/payment-callback")

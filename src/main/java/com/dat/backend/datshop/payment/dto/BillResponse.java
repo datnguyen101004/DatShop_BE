@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class BillResponse {
     private Long billId;
     private String paymentUrl;
+    private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

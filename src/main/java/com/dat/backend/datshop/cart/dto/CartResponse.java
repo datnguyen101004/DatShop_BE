@@ -1,6 +1,6 @@
 package com.dat.backend.datshop.cart.dto;
 
-import com.dat.backend.datshop.production.dto.ProductResponse;
+import com.dat.backend.datshop.product.dto.ProductResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

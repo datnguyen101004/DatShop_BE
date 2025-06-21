@@ -23,8 +23,7 @@ public class VNPayConfig {
     @Value("${vnpay.vnp_ApiUrl}")
     public String vnp_apiUrl;
 
-    @Bean
-    public Map<String, String> createVnPayUrl() {
+    public Map<String, String> createVnPayUrl(Long billId) {
         Map< String, String > vnp_Params = new HashMap<>();
 
         vnp_Params.put("vnp_Version", "2.1.0");
@@ -35,7 +34,8 @@ public class VNPayConfig {
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang mua hang tai cua hang Dat Shop");
         vnp_Params.put("vnp_OrderType", "billpayment");
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", vnp_returnUrl);
+        String returnUrl = vnp_returnUrl + "?billId=" + billId;
+        vnp_Params.put("vnp_ReturnUrl", returnUrl);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         vnp_Params.put("vnp_CreateDate", LocalDateTime.now().format(formatter));
         vnp_Params.put("vnp_ExpireDate", LocalDateTime.now().plusDays(1).format(formatter));

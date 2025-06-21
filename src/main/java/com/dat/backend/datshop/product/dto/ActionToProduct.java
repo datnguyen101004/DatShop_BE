@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.production.dto;
+package com.dat.backend.datshop.product.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreateOrEditProduct {
+public class ActionToProduct {
     private String name;
     private String description;
     private String imageUrl;
