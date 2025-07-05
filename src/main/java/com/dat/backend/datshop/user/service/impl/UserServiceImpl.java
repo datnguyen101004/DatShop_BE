@@ -2,6 +2,7 @@ package com.dat.backend.datshop.user.service.impl;
 
 import com.dat.backend.datshop.user.dto.UserResponse;
 import com.dat.backend.datshop.user.entity.User;
+import com.dat.backend.datshop.user.mapper.UserMapper;
 import com.dat.backend.datshop.user.repository.UserRepository;
 import com.dat.backend.datshop.user.service.UserService;
 import lombok.RequiredArgsConstructor;

@@ -33,7 +33,7 @@ spring:
 #            client-id: ${OAUTH2_GOOGLE_CLIENT_ID}
 #            client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET}
   profiles:
-    active: dev
+    active: ${ACTIVE_PROFILE}
 
 springdoc:
   api-docs:

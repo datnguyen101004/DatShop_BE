@@ -17,8 +17,10 @@ public class UserResponse {
     private String name;
     private String phoneNumber;
     private String address;
-    private boolean active;
+    private boolean isActive;
     private String role;
+    private Double balance;
+    private String avatarUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

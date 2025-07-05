@@ -8,8 +8,9 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ProductMapper {
-
+    @Mapping(target = "authorId", expression = "java(product.getAuthor().getId())")
     ProductResponse productToProductResponse(Product product);
+
     @Mapping(target = "id", ignore = true)
     Product createProductToProduct(ActionToProduct actionToProduct);
 }

@@ -31,7 +31,7 @@ public class User {
     private UserRole role;
     private boolean isActive;
     private String avatarUrl;
-    private Double moneyBalance = 0.0;
+    private Double balance = 0.0;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
