@@ -1,5 +1,6 @@
 package com.dat.backend.datshop.payment.entity;
 
+import com.dat.backend.datshop.cart.entity.Cart;
 import com.dat.backend.datshop.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -18,12 +19,12 @@ import java.util.List;
 @Entity(name = "exchange")
 public class Bill {
     @Id
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
-    private Long id;
+    private String id;
 
     private Long userId;
     private Double price;
     private String description;
+    private String paymentUrl;
 
     @Enumerated(value = jakarta.persistence.EnumType.STRING)
     private BillStatus status;

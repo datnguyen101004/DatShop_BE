@@ -1,12 +1,15 @@
 package com.dat.backend.datshop.cart.controller;
 
 import com.dat.backend.datshop.cart.dto.AddOrRemoveProduct;
+import com.dat.backend.datshop.cart.dto.CartItemResponse;
 import com.dat.backend.datshop.cart.dto.CartResponse;
 import com.dat.backend.datshop.cart.service.CartService;
 import com.dat.backend.datshop.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/user/cart")
@@ -22,7 +25,7 @@ public class CartController {
 
     // Get cart of user
     @GetMapping("/")
-    public ApiResponse<CartResponse> getCart(Authentication authentication) {
+    public ApiResponse<List<CartItemResponse>> getCart(Authentication authentication) {
         return ApiResponse.success(cartService.getCart(authentication.getName()));
     }
 

@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(r->r
                         .requestMatchers(
                                 "/oauth2/**",
+                                "/api/v1/callback/**",
                                 "/chat/**",
                                 "app/**",
                                 "/topic/**",

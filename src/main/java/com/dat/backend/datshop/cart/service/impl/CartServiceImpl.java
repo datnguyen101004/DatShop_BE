@@ -1,9 +1,11 @@
 package com.dat.backend.datshop.cart.service.impl;
 
 import com.dat.backend.datshop.cart.dto.AddOrRemoveProduct;
+import com.dat.backend.datshop.cart.dto.CartItemResponse;
 import com.dat.backend.datshop.cart.dto.CartResponse;
 import com.dat.backend.datshop.cart.entity.Cart;
 import com.dat.backend.datshop.cart.entity.CartItem;
+import com.dat.backend.datshop.cart.mapper.CartItemMapper;
 import com.dat.backend.datshop.cart.repository.CartItemRepository;
 import com.dat.backend.datshop.cart.repository.CartRepository;
 import com.dat.backend.datshop.cart.service.CartService;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,7 +32,7 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
-    private final ProductMapper productMapper;
+    private final CartItemMapper cartItemMapper;
 
     @Override
     @Transactional
@@ -43,12 +46,6 @@ public class CartServiceImpl implements CartService {
         if (product.getStockQuantity() < addOrRemoveProduct.getQuantity()) {
             log.warn("Product has enough stock to add product to the cart");
             throw new RuntimeException("Not enough stock for product ID: " + addOrRemoveProduct.getProductId());
-        }
-        else {
-            log.info("Product has enough stock to add product to the cart");
-            // Reduce stock quantity
-            product.setStockQuantity(product.getStockQuantity() - addOrRemoveProduct.getQuantity());
-            productRepository.save(product);
         }
 
         // Check if product exists increase quantity else create new cart item
@@ -73,8 +70,8 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartResponse getCart(String email) {
-        // Get the cart of the user
+    public List<CartItemResponse> getCart(String email) {
+        // Create if not exists or get the cart of the user
         Cart cart = checkCart(email);
 
         // Fetch cart items
@@ -84,22 +81,8 @@ public class CartServiceImpl implements CartService {
         if (cartItem.isEmpty()) {
             return null;
         }
-        List<Product> products = new ArrayList<>();
-        for (CartItem item : cartItem) {
-            Long productId = item.getProductId();
-            // Fetch product by ID
-            Product product = productRepository.findById(productId)
-                    .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
-            products.add(product);
-        }
 
-        // return CartResponse
-        CartResponse cartResponse = new CartResponse();
-        cartResponse.setCartId(cart.getId());
-        cartResponse.setUserId(cart.getUserId());
-        cartResponse.setProducts(products.stream().map(productMapper::productToProductResponse).toList());
-
-        return cartResponse;
+        return cartItem.stream().map(cartItemMapper::mapToCartItemResponse).collect(Collectors.toList());
     }
 
     @Override

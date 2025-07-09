@@ -6,8 +6,10 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 
-public interface VNPayService {
+public interface PaymentService {
     BillResponse createPayment(List<PayRequest> payRequestList, HttpServletRequest request, String email);
 
     String paymentCallbackHandler(HttpServletRequest request);
+
+    List<BillResponse> getAllBills(String email);
 }

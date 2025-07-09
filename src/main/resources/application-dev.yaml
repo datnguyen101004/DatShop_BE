@@ -11,8 +11,8 @@ jwt:
   expiredRefresh: '1d'
 
 vnpay:
-  vnp_TmnCode: HKWI8F58
-  vnp_HashSecret: OA2CVXXOZBUHR79CE553QD3ZXXOHQ5YC
+  vnp_TmnCode: SKM4V1QG
+  vnp_HashSecret: KB00HFAUBXPFJMAWNV8JLFIV8X9B8ZJQ
   vnp_PayUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  vnp_ReturnUrl: https://localhost/vnpay_php/vnpay_return.php
+  vnp_ReturnUrl: http://localhost:8080/api/v1/callback/payment-callback
   vnp_ApiUrl: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction

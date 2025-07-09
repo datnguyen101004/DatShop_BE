@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class BillResponse {
-    private Long billId;
+    private String billId;
     private String paymentUrl;
     private String status;
     private LocalDateTime createdAt;

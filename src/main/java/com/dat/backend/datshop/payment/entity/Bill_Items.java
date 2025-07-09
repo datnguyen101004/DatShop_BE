@@ -18,7 +18,7 @@ public class Bill_Items {
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     private Long id;
 
-    private Long billId;
+    private String billId;
     private Long productId;
     private int quantity;
 }

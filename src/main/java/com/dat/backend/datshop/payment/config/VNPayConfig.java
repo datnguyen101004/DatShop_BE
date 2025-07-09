@@ -1,7 +1,6 @@
 package com.dat.backend.datshop.payment.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.LocalDateTime;
@@ -23,7 +22,7 @@ public class VNPayConfig {
     @Value("${vnpay.vnp_ApiUrl}")
     public String vnp_apiUrl;
 
-    public Map<String, String> createVnPayUrl(Long billId) {
+    public Map<String, String> createVnPayUrl(String billId) {
         Map< String, String > vnp_Params = new HashMap<>();
 
         vnp_Params.put("vnp_Version", "2.1.0");
@@ -32,7 +31,7 @@ public class VNPayConfig {
         vnp_Params.put("vnp_CurrCode", "VND");
         vnp_Params.put("vnp_TxnRef", "A" + System.currentTimeMillis());
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang mua hang tai cua hang Dat Shop");
-        vnp_Params.put("vnp_OrderType", "billpayment");
+        vnp_Params.put("vnp_OrderType", "other");
         vnp_Params.put("vnp_Locale", "vn");
         String returnUrl = vnp_returnUrl + "?billId=" + billId;
         vnp_Params.put("vnp_ReturnUrl", returnUrl);
