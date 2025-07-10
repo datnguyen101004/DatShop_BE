@@ -1,10 +1,13 @@
 package com.dat.backend.datshop.coupon.service;
 
-import com.dat.backend.datshop.coupon.dto.CouponRequest;
+import com.dat.backend.datshop.coupon.dto.ApplyCoupon;
+import com.dat.backend.datshop.coupon.dto.CreateCoupon;
 import com.dat.backend.datshop.coupon.dto.CouponResponse;
 
-public interface CouponService {
-    CouponResponse createCoupon(CouponRequest couponRequest, String email);
+import java.util.List;
 
-    CouponResponse applyCoupon(CouponRequest couponRequest, String name);
+public interface CouponService {
+    CouponResponse createCoupon(CreateCoupon createCoupon, String email);
+
+    String applyCoupon(List<ApplyCoupon> applyCouponList, String email);
 }

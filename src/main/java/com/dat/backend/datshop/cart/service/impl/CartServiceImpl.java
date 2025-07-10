@@ -2,7 +2,6 @@ package com.dat.backend.datshop.cart.service.impl;
 
 import com.dat.backend.datshop.cart.dto.AddOrRemoveProduct;
 import com.dat.backend.datshop.cart.dto.CartItemResponse;
-import com.dat.backend.datshop.cart.dto.CartResponse;
 import com.dat.backend.datshop.cart.entity.Cart;
 import com.dat.backend.datshop.cart.entity.CartItem;
 import com.dat.backend.datshop.cart.mapper.CartItemMapper;
@@ -10,7 +9,6 @@ import com.dat.backend.datshop.cart.repository.CartItemRepository;
 import com.dat.backend.datshop.cart.repository.CartRepository;
 import com.dat.backend.datshop.cart.service.CartService;
 import com.dat.backend.datshop.product.entity.Product;
-import com.dat.backend.datshop.product.mapper.ProductMapper;
 import com.dat.backend.datshop.product.repository.ProductRepository;
 import com.dat.backend.datshop.user.entity.User;
 import com.dat.backend.datshop.user.repository.UserRepository;
@@ -19,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
