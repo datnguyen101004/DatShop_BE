@@ -34,6 +34,9 @@ spring:
 #            client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET}
   profiles:
     active: ${ACTIVE_PROFILE}
+  jackson:
+    default-property-inclusion: non_null
+
 
 springdoc:
   api-docs:

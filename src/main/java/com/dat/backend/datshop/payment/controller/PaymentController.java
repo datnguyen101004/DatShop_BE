@@ -18,10 +18,10 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/create-payment-url")
-    public ApiResponse<BillResponse> createPaymentUrl(@RequestBody List<PayRequest> payRequestList,
+    public ApiResponse<BillResponse> createPaymentUrl(@RequestBody PayRequest payRequest,
                                                       HttpServletRequest request,
                                                       Authentication authentication) {
-        return ApiResponse.success(paymentService.createPayment(payRequestList, request, authentication.getName()));
+        return ApiResponse.success(paymentService.createPayment(payRequest, request, authentication.getName()));
     }
 
     @GetMapping("/all")

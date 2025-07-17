@@ -4,12 +4,19 @@ import com.dat.backend.datshop.cart.entity.Cart;
 import com.dat.backend.datshop.cart.entity.CartItem;
 import com.dat.backend.datshop.cart.repository.CartItemRepository;
 import com.dat.backend.datshop.cart.repository.CartRepository;
+import com.dat.backend.datshop.coupon.entity.Coupon;
+import com.dat.backend.datshop.coupon.entity.CouponType;
+import com.dat.backend.datshop.coupon.repository.CouponRepository;
 import com.dat.backend.datshop.payment.config.VNPayConfig;
+import com.dat.backend.datshop.payment.dto.BillItemResponse;
 import com.dat.backend.datshop.payment.dto.BillResponse;
 import com.dat.backend.datshop.payment.dto.PayRequest;
+import com.dat.backend.datshop.payment.dto.ProductRequest;
 import com.dat.backend.datshop.payment.entity.Bill;
+import com.dat.backend.datshop.payment.entity.BillCoupons;
 import com.dat.backend.datshop.payment.entity.BillStatus;
-import com.dat.backend.datshop.payment.entity.Bill_Items;
+import com.dat.backend.datshop.payment.entity.BillItems;
+import com.dat.backend.datshop.payment.repository.BillCouponsRepository;
 import com.dat.backend.datshop.payment.repository.BillRepository;
 import com.dat.backend.datshop.payment.repository.Bill_ItemsRepository;
 import com.dat.backend.datshop.payment.service.PaymentService;
@@ -24,10 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -40,29 +44,36 @@ public class PaymentServiceImpl implements PaymentService {
     private final ProductRepository productRepository;
     private final CartItemRepository cartItemRepository;
     private final Bill_ItemsRepository billItemsRepository;
+    private final CouponRepository couponRepository;
+    private final BillCouponsRepository billCouponsRepository;
 
-    // VNPay payment URL creation and bill creation
+    // Tạo url thanh toán bằng VNPay và lưu thông tin hóa đơn vào cơ sở dữ liệu
     @Override
     @Transactional
-    public BillResponse createPayment(List<PayRequest> payRequestList, HttpServletRequest request, String email) {
+    public BillResponse createPayment(PayRequest payRequest, HttpServletRequest request, String email) {
         // Fetch user
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Lấy danh sách sản phẩm từ yêu cầu thanh toán
+        List<ProductRequest> productRequests = payRequest.getProductRequests();
 
-        // Calculate total amount
-        double amount = payRequestList.stream()
-                .mapToLong(payRequest -> {
-                    Product product = productRepository.findById(payRequest.getProductId())
-                            .orElseThrow(() -> new RuntimeException("Product not found with ID: " + payRequest.getProductId()));
-                    log.info("Product found: {}, Price: {}, Quantity: {}", product.getName(), product.getPrice(), payRequest.getQuantity());
-                    return (long) (product.getPrice() * payRequest.getQuantity());
+        if (productRequests == null || productRequests.isEmpty()) {
+            throw new RuntimeException("No products found in the payment request");
+        }
+
+        // Tính tổng số tiền cần thanh toán
+        double amount = productRequests.stream()
+                .mapToLong(productRequest -> {
+                    Product product = productRepository.findById(productRequest.getProductId())
+                            .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productRequest.getProductId()));
+                    return (long) (product.getPrice() * productRequest.getQuantity());
                 })
                 .sum();
 
         log.info("Total amount to be paid: {}", amount);
 
-        // Create bill entity
+        // Tạo hóa đơn mới
         Bill bill = Bill.builder()
                 .id(UUID.randomUUID().toString())
                 .userId(user.getId())
@@ -71,19 +82,69 @@ public class PaymentServiceImpl implements PaymentService {
                 .description("Waiting for payment")
                 .build();
 
-        // Check stock
-        for (PayRequest payRequest : payRequestList) {
-            Product product = productRepository.findById(payRequest.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found with ID: " + payRequest.getProductId()));
-            if (product.getStockQuantity() < payRequest.getQuantity()) {
-                throw new RuntimeException("Not enough stock for product ID: " + payRequest.getProductId());
+        // Kiểm tra và áp dụng mã giảm giá nếu có
+        List<String> couponCodes = payRequest.getCouponCodes();
+        if (couponCodes != null && !couponCodes.isEmpty()) {
+            double percent = 0.0;
+            double money = 0;
+            for (String couponCode : couponCodes) {
+                // Lấy mã giảm giá từ cơ sở dữ liệu
+                Coupon coupon = couponRepository.findByCode(couponCode)
+                        .orElseThrow(() -> new RuntimeException("Coupon not found with code: " + couponCode));
+
+                // Kiểm tra xem mã giảm giá có hợp lệ không
+                if (!coupon.getIsActive() || coupon.getExpirationDate().isBefore(java.time.LocalDateTime.now()) || coupon.getQuantity() <= 0) {
+                    throw new RuntimeException("Coupon is not active: " + couponCode);
+                }
+
+                // Kiểm tra loại mã giảm giá
+                if (coupon.getCouponType() == CouponType.PERCENT) {
+                    // Mã giảm giá theo phần trăm
+                    percent += coupon.getDiscountAmount();
+                } else if (coupon.getCouponType() == CouponType.MONEY) {
+                    // Mã giảm giá theo số tiền
+                    money += coupon.getDiscountAmount();
+                }
+
+                // Lưu mã giảm giá vào hóa đơn
+                BillCoupons billCoupon = BillCoupons.builder()
+                        .billId(bill.getId())
+                        .couponId(coupon.getId())
+                        .build();
+
+                billCouponsRepository.save(billCoupon);
             }
 
-            // Add product order to bill items
-            Bill_Items billItem = Bill_Items.builder()
+            // Đảm bảo rằng money không vượt quá 50% của tổng số tiền và percent không vượt quá 50%
+            if (money > amount * 0.5) {
+                throw new RuntimeException("Discount amount cannot exceed 50% of the total amount");
+            }
+            if (percent > 50) {
+                throw new RuntimeException("Discount percentage cannot exceed 50%");
+            }
+
+            // Tính tổng số tiền sau khi áp dụng mã giảm giá
+            amount = (amount - money) * (1 - percent / 100);
+
+            // Cập nhật tổng số tiền trong hóa đơn
+            bill.setPrice(amount);
+
+            log.info("Total amount after applying coupons: {}", amount);
+        }
+
+        // Kiểm tra kho hàng và thêm sản phẩm vào hóa đơn
+        for (ProductRequest productRequest : productRequests) {
+            Product product = productRepository.findById(productRequest.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productRequest.getProductId()));
+            if (product.getStockQuantity() < productRequest.getQuantity()) {
+                throw new RuntimeException("Not enough stock for product ID: " + productRequest.getProductId());
+            }
+
+            // Them sản phẩm vào hóa đơn
+            BillItems billItem = BillItems.builder()
                     .billId(bill.getId())
-                    .productId(payRequest.getProductId())
-                    .quantity(payRequest.getQuantity())
+                    .productId(productRequest.getProductId())
+                    .quantity(productRequest.getQuantity())
                     .build();
 
             billItemsRepository.save(billItem);
@@ -105,11 +166,11 @@ public class PaymentServiceImpl implements PaymentService {
         queryUrl += "&vnp_SecureHash=" + vnpSecureHash;
         String paymentUrl = vnPayConfig.vnp_PayUrl + "?" + queryUrl;
 
-        // Save bill to database
+        // Lưu hóa đơn vào cơ sở dữ liệu
         bill.setPaymentUrl(paymentUrl);
         billRepository.save(bill);
 
-        // Create BillResponse
+        // Trả về thông tin hóa đơn
         return BillResponse.builder()
                 .billId(bill.getId())
                 .paymentUrl(paymentUrl)
@@ -126,83 +187,132 @@ public class PaymentServiceImpl implements PaymentService {
         String billId = request.getParameter("billId");
         if (status.equals("00")) {
             /*             * Payment successful
-             * Update bill status to PAID and reduce stock quantity
+             * Cập nhật trạng thái hóa đơn và xử lý các sản phẩm trong hóa đơn, giỏ hàng
              */
 
-            // Fetch bill
+            // Lấy hóa đơn từ cơ sở dữ liệu
             Bill bill = billRepository.findById(billId)
                     .orElseThrow(() -> new RuntimeException("Bill not found with ID: " + billId));
 
             log.info("Bill found: {}", bill);
 
-            // Remove bill items from the bill
-            List<Bill_Items> billItems = billItemsRepository.findByBillId(billId);
-            for (Bill_Items billItem : billItems) {
-                // Fetch product
+            // Nếu hóa đơn đã được xử lý thành công, không cần xử lý lại
+            if (bill.getStatus() == BillStatus.SUCCESS) {
+                return "Already processed";
+            }
+
+            // Lây danh sách sản phẩm trong hóa đơn
+            List<BillItems> billItems = billItemsRepository.findByBillId(billId);
+            
+            // Giảm số lượng sản phẩm trong kho
+            for (BillItems billItem : billItems) {
                 Product product = productRepository.findById(billItem.getProductId())
                         .orElseThrow(() -> new RuntimeException("Product not found with ID: " + billItem.getProductId()));
-
-                // Reduce stock quantity
+                
+                // Giảm số lượng sản phẩm trong kho
                 if (product.getStockQuantity() < billItem.getQuantity()) {
                     throw new RuntimeException("Not enough stock for product ID: " + billItem.getProductId());
                 }
                 product.setStockQuantity(product.getStockQuantity() - billItem.getQuantity());
                 productRepository.save(product);
+            }
+            
+            // Giảm số lượng sản phẩm trong giỏ hàng
+            Optional<Cart> optionalCart = cartRepository.findByUserId(bill.getUserId());
+            if (optionalCart.isPresent()) {
+                Cart cart = optionalCart.get();
+                for (BillItems billItem : billItems) {
+                    // Tìm sản phẩm trong giỏ hàng
+                    Optional<CartItem> cartItems = cartItemRepository.findByCartIdAndProductId(cart.getId(), billItem.getProductId());
 
-                // Find cart if user have added product to cart before
-                Cart cart = cartRepository.findByUserId(bill.getUserId())
-                        .orElseThrow(() -> new RuntimeException("Cart not found for user ID: " + bill.getUserId()));
+                    if (cartItems.isPresent()) {
 
-                Optional<CartItem> cartItemOpt = cartItemRepository.findByCartIdAndProductId(cart.getId(), billItem.getProductId());
-                if (cartItemOpt.isPresent()) {
-                    CartItem cartItem = cartItemOpt.get();
-                    cartItem.setQuantity(cartItem.getQuantity() - billItem.getQuantity());
-                    if (cartItem.getQuantity() <= 0) {
-                        // Remove cart item if quantity is zero or less
-                        cartItemRepository.delete(cartItem);
-                    } else {
-                        // Save updated cart item
+                        CartItem cartItem = cartItems.get();
+
+                        // Nếu số lượng trong giỏ hàng nhỏ hơn hoặc bằng số lượng trong hóa đơn, xóa sản phẩm khỏi giỏ hàng
+                        if (cartItem.getQuantity() <= billItem.getQuantity()) {
+                            cartItemRepository.delete(cartItem);
+                            continue;
+                        }
+
+                        // Nếu số lượng trong giỏ hàng lớn hơn số lượng trong hóa đơn, giảm số lượng sản phẩm trong giỏ hàng
+                        cartItem.setQuantity(cartItem.getQuantity() - billItem.getQuantity());
                         cartItemRepository.save(cartItem);
                     }
                 }
-
-                // Remove bill item
-                billItemsRepository.delete(billItem);
             }
 
-            if (bill.getStatus() == BillStatus.SUCCESS) {
-                return "Already processed";
+            // Giảm số lượng mã giảm giá nếu có
+            List<BillCoupons> billCoupons = billCouponsRepository.findByBillId(billId);
+            for (BillCoupons billCoupon : billCoupons) {
+                Coupon coupon = couponRepository.findById(billCoupon.getCouponId())
+                        .orElseThrow(() -> new RuntimeException("Coupon not found with ID: " + billCoupon.getCouponId()));
+
+                // Giảm số lượng mã giảm giá
+                if (coupon.getQuantity() <= 0) {
+                    throw new RuntimeException("Coupon is out of stock: " + coupon.getCode());
+                }
+                coupon.setQuantity(coupon.getQuantity() - 1);
+                couponRepository.save(coupon);
             }
+            
+            // Cập nhật trạng thái hóa đơn
             bill.setStatus(BillStatus.SUCCESS);
             bill.setDescription("Payment successful");
             billRepository.save(bill);
-            return "Success";
+            return "SUCCESS";
         } else {
-            return "Failed";
+            return "FAILURE";
         }
     }
 
     @Override
     public List<BillResponse> getAllBills(String email) {
-        // Fetch user
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
-        // Fetch all bills for the user
+        // Lấy tất cả hóa đơn của người dùng
         List<Bill> bills = billRepository.findByUserId(user.getId());
         if (bills.isEmpty()) {
-            throw new RuntimeException("No bills found for user with email: " + email);
+            return List.of(); // Trả về danh sách rỗng nếu không có hóa đơn nào
         }
 
-        // Map bills to BillResponse
-        return bills.stream()
-                .map(bill -> BillResponse.builder()
-                        .billId(bill.getId())
-                        .status(bill.getStatus().toString())
-                        .paymentUrl(bill.getPaymentUrl())
-                        .createdAt(bill.getCreatedAt())
-                        .updatedAt(bill.getUpdatedAt())
-                        .build())
-                .toList();
+        // Khởi tạo danh sách để lưu trữ các BillResponse trả về
+        List<BillResponse> billResponses = new ArrayList<>();
+
+        // Lấy ra cac thông tin hóa đơn và chuyển đổi sang BillResponse
+        for (Bill bill : bills) {
+            // Lấy danh sách sản phẩm trong hóa đơn
+            List<BillItems> billItems = billItemsRepository.findByBillId(bill.getId());
+
+            // Chuyển sang danh sách BillItemsResponse
+            List<BillItemResponse> billItemResponses = billItems.stream()
+                    .map(billItem -> BillItemResponse.builder()
+                            .productId(billItem.getProductId())
+                            .quantity(billItem.getQuantity())
+                            .build())
+                    .toList();
+
+            // Lấy danh sách mã giảm giá trong hóa đơn
+            List<BillCoupons> billCoupons = billCouponsRepository.findByBillId(bill.getId());
+
+            // Chuyển sang danh sách mã giảm giá
+            List<Long> couponIds = billCoupons.stream().map(BillCoupons::getCouponId).toList();
+
+            // Tạo BillResponse từ hóa đơn
+            BillResponse billResponse = BillResponse.builder()
+                    .billId(bill.getId())
+                    .status(bill.getStatus().toString())
+                    .paymentUrl(bill.getPaymentUrl())
+                    .createdAt(bill.getCreatedAt())
+                    .updatedAt(bill.getUpdatedAt())
+                    .billItems(billItemResponses)
+                    .couponIds(couponIds)
+                    .build();
+            billResponses.add(billResponse);
+        }
+
+        // Map bills sang BillResponse
+        return billResponses;
     }
 }

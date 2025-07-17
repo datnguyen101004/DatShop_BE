@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface PaymentService {
-    BillResponse createPayment(List<PayRequest> payRequestList, HttpServletRequest request, String email);
+    BillResponse createPayment(PayRequest payRequest, HttpServletRequest request, String email);
 
     String paymentCallbackHandler(HttpServletRequest request);
 

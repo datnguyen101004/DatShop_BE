@@ -24,7 +24,6 @@ public class Coupon {
     private Double discountAmount;
     private Boolean isActive;
     private int quantity;
-    private int usedCount;
 
     @Enumerated(EnumType.STRING)
     private CouponType couponType;

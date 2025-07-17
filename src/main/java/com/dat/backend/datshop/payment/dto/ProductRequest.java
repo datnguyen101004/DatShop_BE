@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.coupon.dto;
+package com.dat.backend.datshop.payment.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ApplyCoupon {
-    private String couponCode;
-    private Long billId;
+public class ProductRequest {
+    private int quantity;
+    private Long productId;
 }

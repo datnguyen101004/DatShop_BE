@@ -1,6 +1,5 @@
 package com.dat.backend.datshop.coupon.controller;
 
-import com.dat.backend.datshop.coupon.dto.ApplyCoupon;
 import com.dat.backend.datshop.coupon.dto.CreateCoupon;
 import com.dat.backend.datshop.coupon.dto.CouponResponse;
 import com.dat.backend.datshop.coupon.service.CouponService;
@@ -9,10 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -48,28 +44,12 @@ public class CouponController {
         return ApiResponse.success(couponService.createCoupon(createCoupon, authentication.getName()));
     }
 
+    @GetMapping("/all")
     @Operation(
-            summary = "Áp dụng mã giảm giá",
-            description = "Áp dụng mã giảm giá cho đơn hàng. Chỉ người dùng đã đăng nhập mới có thể áp dụng mã giảm giá."
+            summary = "Lấy tất cả mã giảm giá",
+            description = "Lấy tất cả mã giảm giá đã được tạo. Chỉ chủ shop mới có quyền xem danh sách mã giảm giá."
     )
-    @ApiResponses(
-            value = {
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                            responseCode = "200",
-                            description = "Mã giảm giá được áp dụng thành công"
-                    ),
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                            responseCode = "401",
-                            description = "Mã giảm giá không hợp lệ hoặc đã hết hạn"
-                    ),
-                    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                            responseCode = "404",
-                            description = "Không tìm thấy mã giảm giá"
-                    )
-            }
-    )
-    @PostMapping("/apply")
-    public ApiResponse<String> applyCoupon(@RequestBody List<ApplyCoupon> applyCouponList, Authentication authentication) {
-        return ApiResponse.success(couponService.applyCoupon(applyCouponList, authentication.getName()));
+    public ApiResponse<List<CouponResponse>> getAllCoupons(Authentication authentication) {
+        return ApiResponse.success(couponService.getAllCoupons(authentication.getName()));
     }
 }

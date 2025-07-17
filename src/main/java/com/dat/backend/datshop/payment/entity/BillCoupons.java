@@ -12,13 +12,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity(name = "bill_items")
-public class Bill_Items {
+@Entity(name = "bill_coupons")
+public class BillCoupons {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     private Long id;
-
     private String billId;
-    private Long productId;
-    private int quantity;
+    private Long couponId;
 }

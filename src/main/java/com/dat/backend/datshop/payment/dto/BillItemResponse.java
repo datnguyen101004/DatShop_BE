@@ -5,13 +5,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PayRequest {
-    private List<String> couponCodes;
-    private List<ProductRequest> productRequests;
+public class BillItemResponse {
+    private Long productId;
+    private int quantity;
 }

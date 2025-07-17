@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class CreateCoupon {
-    private String code;
     @Schema(
             description = "Nhập giá trị phần trăm muốn giảm",
             example = "10.5"
@@ -24,8 +23,8 @@ public class CreateCoupon {
     )
     private String expirationDate;
     @Schema(
-            description = "Loại coupon: LIMIT (quantity limit), NO LIMIT, DATE LIMIT",
-            example = "NO LIMIT"
+            description = "Loại coupon: PERCENT (giảm giá theo %), MONEY (giảm giá theo tiền), FREE_SHIPPING (miễn phí vận chuyển)",
+            example = "PERCENT"
     )
     private String couponType;
 }
