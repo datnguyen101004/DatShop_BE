@@ -18,6 +18,12 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(401, "Invalid username or password");
     }
 
+    @ExceptionHandler(NotAuthorizedException.class)
+    public ApiResponse<String> handleNotAuthorizedException(NotAuthorizedException e) {
+        String errorMessage = e.getMessage();
+        return ApiResponse.error(403, errorMessage);
+    }
+
     @ExceptionHandler(Exception.class)
     public ApiResponse<String> handleGeneralException(Exception e) {
         String errorMessage = e.getMessage();
