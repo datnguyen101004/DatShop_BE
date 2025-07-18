@@ -140,7 +140,7 @@ public class PaymentServiceImpl implements PaymentService {
                 throw new RuntimeException("Not enough stock for product ID: " + productRequest.getProductId());
             }
 
-            // Them sản phẩm vào hóa đơn
+            // Thêm sản phẩm vào hóa đơn
             BillItems billItem = BillItems.builder()
                     .billId(bill.getId())
                     .productId(productRequest.getProductId())
@@ -150,12 +150,12 @@ public class PaymentServiceImpl implements PaymentService {
             billItemsRepository.save(billItem);
         }
 
-        // Convert amount to long for VNPay
-        long totalAmount = (long) (amount * 100); // Convert to VND
+        // Chuyển đổi số tiền sang VND (VNPay yêu cầu số tiền phải * 100)
+        long totalAmount = (long) (amount * 100);
 
         log.info("Total amount to be paid: {}", totalAmount);
 
-        // Create payment URL
+        // Tạo URL thanh toán VNPay
         String ipAddr = VNPayUtil.getIpAddr(request);
         Map<String, String> vnpParamsMap = vnPayConfig.createVnPayUrl(bill.getId());
         vnpParamsMap.put("vnp_Amount", String.valueOf(totalAmount));
@@ -186,7 +186,7 @@ public class PaymentServiceImpl implements PaymentService {
         String status = request.getParameter("vnp_ResponseCode");
         String billId = request.getParameter("billId");
         if (status.equals("00")) {
-            /*             * Payment successful
+            /*                       Payment successful
              * Cập nhật trạng thái hóa đơn và xử lý các sản phẩm trong hóa đơn, giỏ hàng
              */
 
@@ -280,7 +280,7 @@ public class PaymentServiceImpl implements PaymentService {
         // Khởi tạo danh sách để lưu trữ các BillResponse trả về
         List<BillResponse> billResponses = new ArrayList<>();
 
-        // Lấy ra cac thông tin hóa đơn và chuyển đổi sang BillResponse
+        // Lấy ra các thông tin hóa đơn và chuyển đổi sang BillResponse
         for (Bill bill : bills) {
             // Lấy danh sách sản phẩm trong hóa đơn
             List<BillItems> billItems = billItemsRepository.findByBillId(bill.getId());
@@ -296,7 +296,7 @@ public class PaymentServiceImpl implements PaymentService {
             // Lấy danh sách mã giảm giá trong hóa đơn
             List<BillCoupons> billCoupons = billCouponsRepository.findByBillId(bill.getId());
 
-            // Chuyển sang danh sách mã giảm giá
+            // Chuyển sang danh sách id mã giảm giá
             List<Long> couponIds = billCoupons.stream().map(BillCoupons::getCouponId).toList();
 
             // Tạo BillResponse từ hóa đơn
@@ -312,7 +312,6 @@ public class PaymentServiceImpl implements PaymentService {
             billResponses.add(billResponse);
         }
 
-        // Map bills sang BillResponse
         return billResponses;
     }
 }
