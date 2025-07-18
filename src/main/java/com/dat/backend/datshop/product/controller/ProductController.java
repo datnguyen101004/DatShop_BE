@@ -16,10 +16,6 @@ import java.util.List;
 public class ProductController {
     private final ProductService productService;
 
-    /**
-     * Action to manage products in the shop for shopper roles.
-     */
-
     // Add new product
     @PostMapping("/add")
     public ApiResponse<ProductResponse> addProduct(@RequestBody ActionToProduct addProduct, Authentication authentication) {
