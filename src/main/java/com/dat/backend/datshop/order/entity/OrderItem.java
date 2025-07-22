@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.payment.entity;
+package com.dat.backend.datshop.order.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
