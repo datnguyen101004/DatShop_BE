@@ -3,7 +3,7 @@ package com.dat.backend.datshop.delivery.controller;
 import com.dat.backend.datshop.delivery.dto.CreateDelivery;
 import com.dat.backend.datshop.delivery.dto.DeliveryResponse;
 import com.dat.backend.datshop.delivery.service.DeliveryService;
-import com.dat.backend.datshop.response.ApiResponse;
+import com.dat.backend.datshop.template.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;

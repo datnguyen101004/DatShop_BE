@@ -3,7 +3,7 @@ package com.dat.backend.datshop.follow.controller;
 import com.dat.backend.datshop.follow.dto.FollowResponse;
 import com.dat.backend.datshop.follow.dto.CreateFollow;
 import com.dat.backend.datshop.follow.service.FollowService;
-import com.dat.backend.datshop.response.ApiResponse;
+import com.dat.backend.datshop.template.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;

@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.response;
+package com.dat.backend.datshop.template;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

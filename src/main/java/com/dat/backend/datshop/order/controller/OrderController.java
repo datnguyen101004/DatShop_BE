@@ -3,7 +3,7 @@ package com.dat.backend.datshop.order.controller;
 import com.dat.backend.datshop.order.dto.CreateOrderRequest;
 import com.dat.backend.datshop.order.dto.OrderResponse;
 import com.dat.backend.datshop.order.service.OrderService;
-import com.dat.backend.datshop.response.ApiResponse;
+import com.dat.backend.datshop.template.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;

@@ -3,7 +3,7 @@ package com.dat.backend.datshop.coupon.controller;
 import com.dat.backend.datshop.coupon.dto.CreateCoupon;
 import com.dat.backend.datshop.coupon.dto.CouponResponse;
 import com.dat.backend.datshop.coupon.service.CouponService;
-import com.dat.backend.datshop.response.ApiResponse;
+import com.dat.backend.datshop.template.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;

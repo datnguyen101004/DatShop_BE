@@ -1,6 +1,6 @@
 package com.dat.backend.datshop.authentication.exception;
 
-import com.dat.backend.datshop.response.ApiResponse;
+import com.dat.backend.datshop.template.ApiResponse;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

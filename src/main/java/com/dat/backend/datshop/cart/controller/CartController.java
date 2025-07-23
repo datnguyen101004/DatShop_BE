@@ -2,9 +2,8 @@ package com.dat.backend.datshop.cart.controller;
 
 import com.dat.backend.datshop.cart.dto.AddOrRemoveProduct;
 import com.dat.backend.datshop.cart.dto.CartItemResponse;
-import com.dat.backend.datshop.cart.dto.CartResponse;
 import com.dat.backend.datshop.cart.service.CartService;
-import com.dat.backend.datshop.response.ApiResponse;
+import com.dat.backend.datshop.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;

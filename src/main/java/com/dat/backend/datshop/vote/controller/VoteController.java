@@ -1,6 +1,6 @@
 package com.dat.backend.datshop.vote.controller;
 
-import com.dat.backend.datshop.response.ApiResponse;
+import com.dat.backend.datshop.template.ApiResponse;
 import com.dat.backend.datshop.vote.dto.CreateVote;
 import com.dat.backend.datshop.vote.dto.VoteResponse;
 import com.dat.backend.datshop.vote.service.VoteService;

@@ -5,7 +5,7 @@ import com.dat.backend.datshop.authentication.dto.LoginResponse;
 import com.dat.backend.datshop.authentication.dto.RegisterRequest;
 import com.dat.backend.datshop.authentication.dto.TokenResponse;
 import com.dat.backend.datshop.authentication.service.AuthService;
-import com.dat.backend.datshop.response.ApiResponse;
+import com.dat.backend.datshop.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

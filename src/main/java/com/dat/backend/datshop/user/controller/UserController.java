@@ -35,8 +35,8 @@ public class UserController {
             }
     )
     @GetMapping("/profile")
-    public com.dat.backend.datshop.response.ApiResponse<UserResponse> getProfile(Authentication authentication) {
+    public com.dat.backend.datshop.template.ApiResponse<UserResponse> getProfile(Authentication authentication) {
         log.info("Get profile for user: {}", authentication.getName());
-        return com.dat.backend.datshop.response.ApiResponse.success(userService.getProfile(authentication.getName()));
+        return com.dat.backend.datshop.template.ApiResponse.success(userService.getProfile(authentication.getName()));
     }
 }

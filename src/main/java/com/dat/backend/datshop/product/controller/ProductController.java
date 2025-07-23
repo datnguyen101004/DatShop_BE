@@ -3,7 +3,7 @@ package com.dat.backend.datshop.product.controller;
 import com.dat.backend.datshop.product.dto.ActionToProduct;
 import com.dat.backend.datshop.product.dto.ProductResponse;
 import com.dat.backend.datshop.product.service.ProductService;
-import com.dat.backend.datshop.response.ApiResponse;
+import com.dat.backend.datshop.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
