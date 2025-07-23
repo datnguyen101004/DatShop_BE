@@ -19,10 +19,6 @@ public class OrderResponse {
     private String orderStatus;
     private String paymentMethod;
     // Địa chỉ giao hàng chi tiết
-    private String address; // Địa chỉ giao hàng cụ thể
-    private String wardName; // Tên phường/xã
-    private String districtName; // Tên quận/huyện
-    private String provinceName; // Tên tỉnh/thành phố
     private String requiredNote; // Ghi chú về yêu cầu giao hàng (ví dụ: không cho xem hàng, cho xem hàng, v.v.)
     private List<ProductItem> productItems;
     private Long couponId; // ID của coupon được áp dụng cho đơn hàng

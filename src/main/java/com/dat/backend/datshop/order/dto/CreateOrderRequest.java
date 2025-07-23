@@ -16,10 +16,6 @@ public class CreateOrderRequest {
     private String note;
     private Long couponId;
     private String paymentMethod;
-    private String address; // Địa chỉ giao hàng cụ thể
-    private String wardName; // Tên phường/xã
-    private String districtName; // Tên quận/huyện
-    private String provinceName; // Tên tỉnh/thành phố
     private List<ProductItem> productItems; // Danh sách sản phẩm trong đơn hàng
     private String requiredNote; // Ghi chú về yêu cầu giao hàng (ví dụ: không cho xem hàng, cho xem hàng, v.v.)
 }

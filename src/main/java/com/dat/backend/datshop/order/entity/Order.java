@@ -31,12 +31,6 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod; // Phương thức thanh toán (ví dụ: chuyển khoản, tiền mặt khi nhận hàng, v.v.)
 
-    // Địa chỉ giao hàng chi tiết
-    private String address; // Địa chỉ giao hàng cụ thể
-    private String wardName; // Tên phường/xã
-    private String districtName; // Tên quận/huyện
-    private String provinceName; // Tên tỉnh/thành phố
-
     @Enumerated(EnumType.STRING)
     private RequiredNote requiredNote; // Ghi chú về yêu cầu giao hàng (ví dụ: không cho xem hàng, cho xem hàng, v.v.)
 
