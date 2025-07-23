@@ -105,7 +105,7 @@ public class OrderServiceImpl implements OrderService {
         // Kiểm tra xem nếu đơn hàng là chuyển khoản thì tạo payment url
         if (createOrderRequest.getPaymentMethod().equals("BANK_TRANSFER")) {
 
-            // Tạo payment url (giả sử là một URL tĩnh cho ví dụ này)
+            // Tạo payment url
             String paymentUrl = createPayment(totalPrice, savedOrder.getId(), request);
             Bill bill = new Bill();
             bill.setId(UUID.randomUUID().toString());
@@ -117,6 +117,11 @@ public class OrderServiceImpl implements OrderService {
             // Cập nhật trạng thái đơn hàng là WAITING_FOR_PAYMENT
             savedOrder.setOrderStatus(OrderStatus.WAITING_FOR_PAYMENT);
             orderRepository.save(savedOrder);
+            // Trả về thông tin đơn hàng kèm theo paymentUrl
+            OrderResponse orderResponse = orderMapper.toOrderResponse(savedOrder);
+            orderResponse.setProductItems(createOrderRequest.getProductItems());
+            orderResponse.setPaymentUrl(paymentUrl);
+            return orderResponse;
         } else {
             // Nếu không phải chuyển khoản, lưu trạng thái là PREPARING
             savedOrder.setOrderStatus(OrderStatus.PREPARING);
@@ -138,9 +143,12 @@ public class OrderServiceImpl implements OrderService {
         return orderResponse;
     }
 
+    // Tạo URL thanh toán VNPay
     private String createPayment(Long totalPrice, Long orderId, HttpServletRequest request) {
         // Convert totalPrice sang đơn vị đồng của VNPay (1 VNĐ = 100 đồng)
         totalPrice *= 100;
+        log.info("Creating payment for order id: {}, total price: {}", orderId, totalPrice);
+
         // Tạo URL thanh toán VNPay
         String ipAddr = VNPayUtil.getIpAddr(request);
         Map<String, String> vnpParamsMap = vnPayConfig.createVnPayUrl(orderId);
@@ -202,6 +210,7 @@ public class OrderServiceImpl implements OrderService {
             // Cập nhật trạng thái đơn hàng
             order.setOrderStatus(OrderStatus.PREPARING);
             bill.setPaymentStatus(PaymentStatus.SUCCESS);
+
             // Lưu cập nhật
             orderRepository.save(order);
             billRepository.save(bill);
@@ -219,6 +228,8 @@ public class OrderServiceImpl implements OrderService {
             log.info("Payment successful for order id: {}", orderId);
             return "SUCCESS";
         }
+        // Trường hợp thanh toán không thành công
+        log.warn("Payment failed for order id: {} with status: {}", orderId, status);
 
         return "FAILED";
     }

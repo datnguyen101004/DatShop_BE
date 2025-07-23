@@ -27,6 +27,7 @@ public class OrderResponse {
     private List<ProductItem> productItems;
     private Long couponId; // ID của coupon được áp dụng cho đơn hàng
     private Long totalPrice; // Tổng giá trị của đơn hàng
+    private String paymentUrl; // URL thanh toán nếu có
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
