@@ -1,6 +1,6 @@
 package com.dat.backend.datshop.coupon.entity;
 
-import com.dat.backend.datshop.payment.entity.Bill;
+import com.dat.backend.datshop.order.entity.Bill;
 import com.dat.backend.datshop.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
