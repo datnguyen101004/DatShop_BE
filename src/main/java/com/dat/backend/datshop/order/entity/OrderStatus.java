@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.payment.entity;
+package com.dat.backend.datshop.order.entity;
 
 public enum BillStatus {
     PENDING,

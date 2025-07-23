@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.payment.dto;
+package com.dat.backend.datshop.order.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PayRequest {
+public class CreateOrder {
     private List<String> couponCodes;
-    private List<ProductRequest> productRequests;
+    private List<ProductItem> productItems;
 }
