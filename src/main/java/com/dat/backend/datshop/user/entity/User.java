@@ -26,12 +26,17 @@ public class User {
     private String password;
     private String name;
     private String phoneNumber;
-    private String address;
     @Enumerated(jakarta.persistence.EnumType.STRING)
     private UserRole role;
     private boolean isActive;
     private String avatarUrl;
     private Double balance = 0.0;
+
+    // Địa chỉ
+    private String address; // địa chỉ cụ thể (ví dụ: số nhà, đường phố)
+    private String wardName; // Tên phường/xã
+    private String districtName; // Tên quận/huyện
+    private String provinceName; // Tên tỉnh/thành phố
 
     @CreationTimestamp
     private LocalDateTime createdAt;
