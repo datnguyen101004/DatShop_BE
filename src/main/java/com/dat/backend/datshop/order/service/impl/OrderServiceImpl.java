@@ -1,5 +1,9 @@
 package com.dat.backend.datshop.order.service.impl;
 
+import com.dat.backend.datshop.cart.entity.Cart;
+import com.dat.backend.datshop.cart.entity.CartItem;
+import com.dat.backend.datshop.cart.repository.CartItemRepository;
+import com.dat.backend.datshop.cart.repository.CartRepository;
 import com.dat.backend.datshop.coupon.entity.Coupon;
 import com.dat.backend.datshop.coupon.entity.CouponType;
 import com.dat.backend.datshop.coupon.repository.CouponRepository;
@@ -24,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -38,6 +43,8 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final VNPayConfig vnPayConfig;
     private final BillRepository billRepository;
+    private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
 
     @Override
     @Transactional
@@ -52,6 +59,7 @@ public class OrderServiceImpl implements OrderService {
         Order newOrder = orderMapper.toOrderEntity(createOrderRequest);
         newOrder.setUserId(user.getId());
         newOrder.setOrderStatus(OrderStatus.PENDING); // Mặc định trạng thái đơn hàng là PENDING
+        newOrder.setCreatedAt(LocalDateTime.now());
 
         // Chuyển coupon từ id sang entity nếu có
         Long couponId = createOrderRequest.getCouponId();
@@ -67,12 +75,15 @@ public class OrderServiceImpl implements OrderService {
         // Kiểm tra xem có coupon không
         if (couponId != null) {
             Optional<Coupon> couponOp = couponRepository.findById(couponId);
+
+            // Kiểm tra xem coupon có tồn tại không
             if (couponOp.isPresent()) {
                 // Kiểm tra xem coupon có hơp lệ không
                 if (!couponOp.get().getIsActive() || couponOp.get().getQuantity() <= 0) {
                     throw new RuntimeException("Coupon is not valid");
                 }
-                // Nếu coupon tồn tại, gán vào đơn hàng
+
+                // Nếu coupon hợp lệ, gán vào đơn hàng
                 Coupon coupon = couponOp.get();
                 newOrder.setCoupon(coupon);
 
@@ -103,7 +114,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // Kiểm tra xem nếu đơn hàng là chuyển khoản thì tạo payment url
-        if (createOrderRequest.getPaymentMethod().equals("BANK_TRANSFER")) {
+        if (createOrderRequest.getPaymentMethod().equalsIgnoreCase(PaymentMethod.BANK_TRANSFER.name())) {
 
             // Tạo payment url
             String paymentUrl = createPayment(totalPrice, savedOrder.getId(), request);
@@ -117,6 +128,7 @@ public class OrderServiceImpl implements OrderService {
             // Cập nhật trạng thái đơn hàng là WAITING_FOR_PAYMENT
             savedOrder.setOrderStatus(OrderStatus.WAITING_FOR_PAYMENT);
             orderRepository.save(savedOrder);
+
             // Trả về thông tin đơn hàng kèm theo paymentUrl
             OrderResponse orderResponse = orderMapper.toOrderResponse(savedOrder);
             orderResponse.setProductItems(createOrderRequest.getProductItems());
@@ -125,16 +137,11 @@ public class OrderServiceImpl implements OrderService {
         } else {
             // Nếu không phải chuyển khoản, lưu trạng thái là PREPARING
             savedOrder.setOrderStatus(OrderStatus.PREPARING);
+
             // Giảm số lượng coupon nếu có
             if (savedOrder.getCoupon() != null) {
-                Coupon coupon = savedOrder.getCoupon();
-                coupon.setQuantity(coupon.getQuantity() - 1);
-                if (coupon.getQuantity() <= 0) {
-                    coupon.setIsActive(false); // Đánh dấu coupon không còn hợp lệ
-                }
-                couponRepository.save(coupon);
+                applyCouponUsage(savedOrder.getCoupon());
             }
-            orderRepository.save(savedOrder);
         }
 
         // Chuyển đổi sang DTO để trả về
@@ -163,6 +170,17 @@ public class OrderServiceImpl implements OrderService {
         return paymentUrl;
     }
 
+    // Giảm số lượng coupon khi sử dụng
+    private void applyCouponUsage(Coupon coupon) {
+        // Giảm số lượng coupon
+        coupon.setQuantity(coupon.getQuantity() - 1);
+        if (coupon.getQuantity() <= 0) {
+            // Nếu số lượng coupon giảm xuống 0, đánh dấu là không còn hiệu lực
+            coupon.setIsActive(false);
+        }
+        couponRepository.save(coupon);
+    }
+
     @Override
     public List<OrderResponse> getAllOrders(String name) {
 
@@ -173,7 +191,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderResponse> orderResponses = new ArrayList<>();
 
         // Kiểm tra xem có đơn hàng nào không
-        if (orders != null && !orders.isEmpty()) {
+        if (!orders.isEmpty()) {
             // Chuyển đổi danh sách đơn hàng sang danh sách DTO
             for (Order order : orders) {
                 List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(order.getId());
@@ -211,26 +229,72 @@ public class OrderServiceImpl implements OrderService {
             order.setOrderStatus(OrderStatus.PREPARING);
             bill.setPaymentStatus(PaymentStatus.SUCCESS);
 
-            // Lưu cập nhật
+            // Lưu cập nhật đơn hàng và bill
             orderRepository.save(order);
             billRepository.save(bill);
 
             // Giảm số lượng coupon nếu có
             if (order.getCoupon() != null) {
-                Coupon coupon = order.getCoupon();
-                coupon.setQuantity(coupon.getQuantity() - 1);
-                if (coupon.getQuantity() <= 0) {
-                    coupon.setIsActive(false); // Đánh dấu coupon không còn hợp lệ
-                }
-                couponRepository.save(coupon);
+                applyCouponUsage(order.getCoupon());
             }
+
+            // Giảm số lượng sản phẩm trong kho
+            // Lấy tất cả các sản phẩm trong đơn hàng
+            List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(order.getId());
+            for (OrderItem item : orderItems) {
+                Product product = productRepository.findById(item.getProductId())
+                        .orElseThrow(() -> new RuntimeException("Product not found with id: " + item.getProductId()));
+                product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
+                productRepository.save(product);
+            }
+
+            // Giảm số lượng sản phẩm trong giỏ hàng
+            reduceCartItems(order.getUserId(), orderItems);
 
             log.info("Payment successful for order id: {}", orderId);
             return "SUCCESS";
         }
+
         // Trường hợp thanh toán không thành công
         log.warn("Payment failed for order id: {} with status: {}", orderId, status);
 
         return "FAILED";
+    }
+
+    // Giảm số lượng sản phẩm trong giỏ hàng
+    private void reduceCartItems(Long userId, List<OrderItem> orderItems) {
+        // Lấy giỏ hàng của người dùng
+        Optional<Cart> cartOptional = cartRepository.findById(userId);
+
+        // Nếu giỏ hàng không tồn tại, không cần làm gì
+        if (cartOptional.isEmpty()) {
+            return;
+        }
+
+        Cart cart = cartOptional.get();
+
+        // Lấy danh sách các sản phẩm trong giỏ hàng trùng với sản phẩm trong đơn hàng
+        for (OrderItem orderItem : orderItems) {
+            Optional<CartItem> cartItems = cartItemRepository.findByCartIdAndProductId(cart.getId(), orderItem.getProductId());
+
+            // Nếu sản phẩm tồn tại trong giỏ hàng giảm số lượng
+            if (cartItems.isPresent()) {
+
+                CartItem cartItem = cartItems.get();
+
+                // Giảm số lượng sản phẩm trong giỏ hàng
+                int newQuantity = cartItem.getQuantity() - orderItem.getQuantity();
+
+                // Nếu số lượng giảm xuống 0 hoặc âm, xóa sản phẩm khỏi giỏ hàng
+                if (newQuantity <= 0) {
+                    cartItemRepository.delete(cartItem);
+                } else {
+                    // Cập nhật số lượng sản phẩm trong giỏ hàng
+                    cartItem.setQuantity(newQuantity);
+                    cartItemRepository.save(cartItem);
+                }
+            }
+            // Nếu sản phẩm không tồn tại trong giỏ hàng, không cần làm gì
+        }
     }
 }
