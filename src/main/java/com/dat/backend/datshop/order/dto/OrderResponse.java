@@ -4,22 +4,29 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.parameters.P;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreateOrderRequest {
+public class OrderResponse {
+    private Long orderId;
+    private Long userId;
     private String note;
-    private Long couponId;
+    private String orderStatus;
     private String paymentMethod;
+    // Địa chỉ giao hàng chi tiết
     private String address; // Địa chỉ giao hàng cụ thể
     private String wardName; // Tên phường/xã
     private String districtName; // Tên quận/huyện
     private String provinceName; // Tên tỉnh/thành phố
-    private List<ProductItem> productItems; // Danh sách sản phẩm trong đơn hàng
     private String requiredNote; // Ghi chú về yêu cầu giao hàng (ví dụ: không cho xem hàng, cho xem hàng, v.v.)
+    private List<ProductItem> productItems;
+    private Long couponId; // ID của coupon được áp dụng cho đơn hàng
+    private Long totalPrice; // Tổng giá trị của đơn hàng
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

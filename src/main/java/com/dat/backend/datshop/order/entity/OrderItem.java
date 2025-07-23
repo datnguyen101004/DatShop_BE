@@ -13,12 +13,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Entity(name = "product_items")
-public class BillItems {
+public class OrderItem {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     private Long id;
 
-    private String billId;
+    private Long orderId;
     private Long productId;
     private int quantity;
 }

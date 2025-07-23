@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.payment.config;
+package com.dat.backend.datshop.order.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +22,7 @@ public class VNPayConfig {
     @Value("${vnpay.vnp_ApiUrl}")
     public String vnp_apiUrl;
 
-    public Map<String, String> createVnPayUrl(String billId) {
+    public Map<String, String> createVnPayUrl(Long orderId) {
         Map< String, String > vnp_Params = new HashMap<>();
 
         vnp_Params.put("vnp_Version", "2.1.0");
@@ -33,7 +33,7 @@ public class VNPayConfig {
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang mua hang tai cua hang Dat Shop");
         vnp_Params.put("vnp_OrderType", "other");
         vnp_Params.put("vnp_Locale", "vn");
-        String returnUrl = vnp_returnUrl + "?billId=" + billId;
+        String returnUrl = vnp_returnUrl + "?orderId=" + orderId;
         vnp_Params.put("vnp_ReturnUrl", returnUrl);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         vnp_Params.put("vnp_CreateDate", LocalDateTime.now().format(formatter));

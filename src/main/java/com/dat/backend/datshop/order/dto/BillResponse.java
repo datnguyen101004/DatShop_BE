@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.payment.dto;
+package com.dat.backend.datshop.order.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,10 +14,9 @@ import java.util.List;
 @Builder
 public class BillResponse {
     private String billId;
+    private Long orderId;
     private String paymentUrl;
-    private String status;
+    private String paymentStatus;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<BillItemResponse> billItems;
-    private List<Long> couponIds;
 }

@@ -1,12 +1,12 @@
-package com.dat.backend.datshop.payment.repository;
+package com.dat.backend.datshop.order.repository;
 
-import com.dat.backend.datshop.payment.entity.Bill;
+import com.dat.backend.datshop.order.entity.Bill;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BillRepository extends JpaRepository<Bill, String> {
-    List<Bill> findByUserId(Long id);
+    Optional<Bill> findByOrderId(Long id);
 }

@@ -1,36 +1,32 @@
-package com.dat.backend.datshop.payment.entity;
+package com.dat.backend.datshop.order.entity;
 
-import com.dat.backend.datshop.cart.entity.Cart;
-import com.dat.backend.datshop.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity(name = "exchange")
+@Entity(name = "bills")
 public class Bill {
     @Id
     private String id;
 
-    private Long userId;
-    private Double price;
-    private String description;
+    private Long orderId;
     private String paymentUrl;
 
     @Enumerated(value = jakarta.persistence.EnumType.STRING)
-    private BillStatus status;
+    private PaymentStatus paymentStatus;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
-    @CreationTimestamp
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 }

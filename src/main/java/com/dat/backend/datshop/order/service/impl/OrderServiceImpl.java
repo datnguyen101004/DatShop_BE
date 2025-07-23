@@ -1,0 +1,225 @@
+package com.dat.backend.datshop.order.service.impl;
+
+import com.dat.backend.datshop.coupon.entity.Coupon;
+import com.dat.backend.datshop.coupon.entity.CouponType;
+import com.dat.backend.datshop.coupon.repository.CouponRepository;
+import com.dat.backend.datshop.order.config.VNPayConfig;
+import com.dat.backend.datshop.order.dto.CreateOrderRequest;
+import com.dat.backend.datshop.order.dto.OrderResponse;
+import com.dat.backend.datshop.order.dto.ProductItem;
+import com.dat.backend.datshop.order.entity.*;
+import com.dat.backend.datshop.order.mapper.OrderMapper;
+import com.dat.backend.datshop.order.repository.BillRepository;
+import com.dat.backend.datshop.order.repository.OrderItemRepository;
+import com.dat.backend.datshop.order.repository.OrderRepository;
+import com.dat.backend.datshop.order.service.OrderService;
+import com.dat.backend.datshop.order.util.VNPayUtil;
+import com.dat.backend.datshop.product.entity.Product;
+import com.dat.backend.datshop.product.repository.ProductRepository;
+import com.dat.backend.datshop.user.entity.User;
+import com.dat.backend.datshop.user.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class OrderServiceImpl implements OrderService {
+    private final OrderRepository orderRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final UserRepository userRepository;
+    private final OrderMapper orderMapper;
+    private final CouponRepository couponRepository;
+    private final ProductRepository productRepository;
+    private final VNPayConfig vnPayConfig;
+    private final BillRepository billRepository;
+
+    @Override
+    @Transactional
+    public OrderResponse createNewOrder(CreateOrderRequest createOrderRequest,
+                                        HttpServletRequest request,
+                                        String name) {
+        User user = userRepository.findByEmail(name)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Tạo đơn hàng mới
+        // Chuyển đổi từ DTO sang Entity
+        Order newOrder = orderMapper.toOrderEntity(createOrderRequest);
+        newOrder.setUserId(user.getId());
+        newOrder.setOrderStatus(OrderStatus.PENDING); // Mặc định trạng thái đơn hàng là PENDING
+
+        // Chuyển coupon từ id sang entity nếu có
+        Long couponId = createOrderRequest.getCouponId();
+        // Tính toán tổng giá trị đơn hàng
+        long totalPrice = createOrderRequest.getProductItems().stream()
+                .mapToLong(item -> {
+                    Product product = productRepository.findById(item.getProductId())
+                            .orElseThrow(() -> new RuntimeException("Product not found with id: " + item.getProductId()));
+                    return (long) (product.getPrice() * item.getQuantity());
+                })
+                .sum();
+
+        // Kiểm tra xem có coupon không
+        if (couponId != null) {
+            Optional<Coupon> couponOp = couponRepository.findById(couponId);
+            if (couponOp.isPresent()) {
+                // Kiểm tra xem coupon có hơp lệ không
+                if (!couponOp.get().getIsActive() || couponOp.get().getQuantity() <= 0) {
+                    throw new RuntimeException("Coupon is not valid");
+                }
+                // Nếu coupon tồn tại, gán vào đơn hàng
+                Coupon coupon = couponOp.get();
+                newOrder.setCoupon(coupon);
+
+                // Tính toán tổng giá trị đơn hàng sau khi áp dụng coupon
+                if (coupon.getCouponType() == CouponType.PERCENT) {
+                    // Giảm giá theo phần trăm
+                    totalPrice = (long) (totalPrice - (totalPrice * coupon.getDiscountAmount() / 100));
+                } else if (coupon.getCouponType() == CouponType.MONEY) {
+                    // Giảm giá theo giá trị cố định
+                    totalPrice = (long) (totalPrice - coupon.getDiscountAmount());
+                }
+            } else {
+                log.warn("Coupon with id {} not found", couponId);
+            }
+        }
+
+        // Gán tổng giá trị đơn hàng
+        newOrder.setTotalPrice(totalPrice);
+
+        // Lưu đơn hàng mới vào cơ sở dữ liệu
+        Order savedOrder = orderRepository.save(newOrder);
+
+        // Lưu các sản phẩm trong đơn hàng
+        for (ProductItem item : createOrderRequest.getProductItems()) {
+            OrderItem orderItem = orderMapper.toOrderItemEntity(item);
+            orderItem.setOrderId(savedOrder.getId());
+            orderItemRepository.save(orderItem);
+        }
+
+        // Kiểm tra xem nếu đơn hàng là chuyển khoản thì tạo payment url
+        if (createOrderRequest.getPaymentMethod().equals("BANK_TRANSFER")) {
+
+            // Tạo payment url (giả sử là một URL tĩnh cho ví dụ này)
+            String paymentUrl = createPayment(totalPrice, savedOrder.getId(), request);
+            Bill bill = new Bill();
+            bill.setId(UUID.randomUUID().toString());
+            bill.setOrderId(savedOrder.getId());
+            bill.setPaymentStatus(PaymentStatus.PENDING);
+            bill.setPaymentUrl(paymentUrl);
+            billRepository.save(bill);
+
+            // Cập nhật trạng thái đơn hàng là WAITING_FOR_PAYMENT
+            savedOrder.setOrderStatus(OrderStatus.WAITING_FOR_PAYMENT);
+            orderRepository.save(savedOrder);
+        } else {
+            // Nếu không phải chuyển khoản, lưu trạng thái là PREPARING
+            savedOrder.setOrderStatus(OrderStatus.PREPARING);
+            // Giảm số lượng coupon nếu có
+            if (savedOrder.getCoupon() != null) {
+                Coupon coupon = savedOrder.getCoupon();
+                coupon.setQuantity(coupon.getQuantity() - 1);
+                if (coupon.getQuantity() <= 0) {
+                    coupon.setIsActive(false); // Đánh dấu coupon không còn hợp lệ
+                }
+                couponRepository.save(coupon);
+            }
+            orderRepository.save(savedOrder);
+        }
+
+        // Chuyển đổi sang DTO để trả về
+        OrderResponse orderResponse = orderMapper.toOrderResponse(savedOrder);
+        orderResponse.setProductItems(createOrderRequest.getProductItems());
+        return orderResponse;
+    }
+
+    private String createPayment(Long totalPrice, Long orderId, HttpServletRequest request) {
+        // Convert totalPrice sang đơn vị đồng của VNPay (1 VNĐ = 100 đồng)
+        totalPrice *= 100;
+        // Tạo URL thanh toán VNPay
+        String ipAddr = VNPayUtil.getIpAddr(request);
+        Map<String, String> vnpParamsMap = vnPayConfig.createVnPayUrl(orderId);
+        vnpParamsMap.put("vnp_Amount", String.valueOf(totalPrice));
+        vnpParamsMap.put("vnp_IpAddr", ipAddr);
+        String queryUrl = VNPayUtil.getPaymentURL(vnpParamsMap, true);
+        String hashData = VNPayUtil.getPaymentURL(vnpParamsMap, false);
+        String vnpSecureHash = VNPayUtil.hmacSHA512(vnPayConfig.vnp_HashSecret, hashData);
+        queryUrl += "&vnp_SecureHash=" + vnpSecureHash;
+        String paymentUrl = vnPayConfig.vnp_PayUrl + "?" + queryUrl;
+        log.info("Payment URL created: {}", paymentUrl);
+        return paymentUrl;
+    }
+
+    @Override
+    public List<OrderResponse> getAllOrders(String name) {
+
+        User user = userRepository.findByEmail(name)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Order> orders = orderRepository.findAllByUserId(user.getId());
+        List<OrderResponse> orderResponses = new ArrayList<>();
+
+        // Kiểm tra xem có đơn hàng nào không
+        if (orders != null && !orders.isEmpty()) {
+            // Chuyển đổi danh sách đơn hàng sang danh sách DTO
+            for (Order order : orders) {
+                List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(order.getId());
+                List<ProductItem> productItems = orderItems.stream().map(orderMapper::toProductItemDto).toList();
+                OrderResponse orderResponse = orderMapper.toOrderResponse(order);
+                orderResponse.setProductItems(productItems);
+                orderResponses.add(orderResponse);
+            }
+            return orderResponses;
+        }
+
+        return List.of();
+    }
+
+    @Override
+    @Transactional
+    public String paymentCallbackHandler(HttpServletRequest request) {
+        // Lấy các tham số từ request
+        String status = request.getParameter("vnp_ResponseCode");
+        String orderId = request.getParameter("orderId");
+
+        // Kiểm tra trạng thái thanh toán
+        if (status.equals("00")) {
+            /*                       PaymentMethod successful
+             * Cập nhật trạng thái đơn hàng và bill
+             */
+
+            // Lấy đơn hàng và bill
+            Order order = orderRepository.findById(Long.parseLong(orderId))
+                    .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+            Bill bill = billRepository.findByOrderId(Long.valueOf(orderId))
+                    .orElseThrow(() -> new RuntimeException("Bill not found for order id: " + orderId));
+
+            // Cập nhật trạng thái đơn hàng
+            order.setOrderStatus(OrderStatus.PREPARING);
+            bill.setPaymentStatus(PaymentStatus.SUCCESS);
+            // Lưu cập nhật
+            orderRepository.save(order);
+            billRepository.save(bill);
+
+            // Giảm số lượng coupon nếu có
+            if (order.getCoupon() != null) {
+                Coupon coupon = order.getCoupon();
+                coupon.setQuantity(coupon.getQuantity() - 1);
+                if (coupon.getQuantity() <= 0) {
+                    coupon.setIsActive(false); // Đánh dấu coupon không còn hợp lệ
+                }
+                couponRepository.save(coupon);
+            }
+
+            log.info("Payment successful for order id: {}", orderId);
+            return "SUCCESS";
+        }
+
+        return "FAILED";
+    }
+}

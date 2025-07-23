@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.payment.dto;
+package com.dat.backend.datshop.order.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductRequest {
+public class ProductItem {
     private int quantity;
     private Long productId;
 }
