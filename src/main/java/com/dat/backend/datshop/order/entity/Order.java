@@ -1,6 +1,7 @@
 package com.dat.backend.datshop.order.entity;
 
 import com.dat.backend.datshop.coupon.entity.Coupon;
+import com.dat.backend.datshop.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -45,4 +47,9 @@ public class Order {
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id")
     private Coupon coupon;
+
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "shop_id")
+    private User shop; // Cửa hàng liên kết với đơn hàng
+
 }

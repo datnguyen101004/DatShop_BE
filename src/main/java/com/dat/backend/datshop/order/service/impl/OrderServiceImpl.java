@@ -61,6 +61,11 @@ public class OrderServiceImpl implements OrderService {
         newOrder.setOrderStatus(OrderStatus.PENDING); // Mặc định trạng thái đơn hàng là PENDING
         newOrder.setCreatedAt(LocalDateTime.now());
 
+        // Set shopId cho đơn hàng
+        Product product1 = productRepository.findById(createOrderRequest.getProductItems().getFirst().getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + createOrderRequest.getProductItems().getFirst().getProductId()));
+        newOrder.setShop(product1.getAuthor());
+
         // Chuyển coupon từ id sang entity nếu có
         Long couponId = createOrderRequest.getCouponId();
         // Tính toán tổng giá trị đơn hàng
