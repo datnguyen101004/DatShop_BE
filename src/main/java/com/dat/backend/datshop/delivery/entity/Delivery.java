@@ -1,9 +1,6 @@
 package com.dat.backend.datshop.delivery.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,10 +24,14 @@ public class Delivery {
     private Long shopId; // ID của shop
     private String clientOrderCode; // Mã đơn hàng của khách hàng
     private String ghnOrderCode; // Mã đơn hàng của GHN
-    private String orderStatus; // Trạng thái đơn hàng (ví dụ: đang xử lý, đã giao hàng, đã hủy, v.v.)
     private Long totalFee; // Tổng phí giao hàng
     private LocalDateTime expectedDeliveryTime; // Thời gian giao hàng dự kiến
     private String note; // Ghi chú của người dùng về đơn hàng
+
+    @Enumerated(EnumType.STRING)
+    private RequiredNoteGHN required_note; // Ghi chú bắt buộc, Bao gồm: CHOTHUHANG, CHOXEMHANGKHONGTHU, KHONGCHOXEMHANG
+    @Enumerated(EnumType.STRING)
+    private DeliveryStatus deliveryStatus; // Trạng thái đơn hàng (ví dụ: PENDING (đang xử lý), SUCCESS (đã giao hàng), CANCEL (đã hủy), v.v.)
 
     private String fromName;
     private String fromPhone;

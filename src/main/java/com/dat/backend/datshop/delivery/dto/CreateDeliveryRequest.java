@@ -1,5 +1,6 @@
 package com.dat.backend.datshop.delivery.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,42 +29,42 @@ public class CreateDeliveryRequest {
 //    private String return_ward_name;
 //    private String return_district_name;
 //    private String return_province_name;
-//    @Schema(
-//            description = "Mã đơn hàng của người bán. Mã này sẽ được sử dụng để tra cứu đơn hàng trên hệ thống của người bán. Tạo ra mã này bằng: shop + id đơn hàng",
-//            example = "shop_1"
-//    )
+    @Schema(
+            description = "Mã đơn hàng của người bán. Mã này sẽ được sử dụng để tra cứu đơn hàng trên hệ thống của người bán. Tạo ra mã này bằng: shop + id đơn hàng",
+            example = "shop_1"
+    )
     private String client_order_code;
-    private String content;
-//    @Schema(description = "Khối lượng (gram)", example = "30")
+//    private String content;
+    @Schema(description = "Khối lượng (gram)", example = "30")
     private int weight;
-//    @Schema(description = "Chiều dài (cm)", example = "30")
+    @Schema(description = "Chiều dài (cm)", example = "30")
     private int length;
-//    @Schema(description = "Chiều rộng (cm)", example = "30")
+    @Schema(description = "Chiều rộng (cm)", example = "30")
     private int width;
-//    @Schema(description = "Chiều cao (cm)", example = "30")
+    @Schema(description = "Chiều cao (cm)", example = "30")
     private int height;
     private String coupon;
-//    @Schema(
-//            description = "Mã loại dịch vụ cố định. Trong đó:  2: Hàng nhẹ, 5: Hàng nặng. Hàng nhẹ sử dụng length, width, height và weight. Hàng nặng sử dụng items[].length, items[].width, items[].height và items[].weight",
-//            example = "2"
-//    )
+    @Schema(
+            description = "Mã loại dịch vụ cố định. Trong đó:  2: Hàng nhẹ, 5: Hàng nặng. Hàng nhẹ sử dụng length, width, height và weight. Hàng nặng sử dụng items[].length, items[].width, items[].height và items[].weight",
+            example = "2"
+    )
     private int service_type_id;
-//    @Schema(
-//            description = "Mã người thanh toán phí dịch vụ. Trong đó: 1: Người bán/Người gửi, 2: Người mua/Người nhận.",
-//            example = "2"
-//    )
-    private int payment_type_id;
+    @Schema(
+            description = "Mã người thanh toán phí dịch vụ. Trong đó: 1: Người bán/Người gửi, 2: Người mua/Người nhận.",
+            example = "2"
+    )
+    private int payment_type_id = 2; // Default to "Người mua/Người nhận"
     private String note;
-//    @Schema(
-//            description = "Ghi chú bắt buộc, Bao gồm: CHOTHUHANG, CHOXEMHANGKHONGTHU, KHONGCHOXEMHANG\n" +
-//                    "\n" +
-//                    "CHOTHUHANG nghĩa là Người mua có thể yêu cầu xem và dùng thử hàng hóa\n" +
-//                    "\n" +
-//                    "CHOXEMHANGKHONGTHU nghĩa là Người mua được xem hàng nhưng không được dùng thử hàng\n" +
-//                    "\n" +
-//                    "KHONGCHOXEMHANG nghĩa là Người mua không được phép xem hàng",
-//            example = "CHOXEMHANGKHONGTHU"
-//    )
+    @Schema(
+            description = "Ghi chú bắt buộc, Bao gồm: CHOTHUHANG, CHOXEMHANGKHONGTHU, KHONGCHOXEMHANG\n" +
+                    "\n" +
+                    "CHOTHUHANG nghĩa là Người mua có thể yêu cầu xem và dùng thử hàng hóa\n" +
+                    "\n" +
+                    "CHOXEMHANGKHONGTHU nghĩa là Người mua được xem hàng nhưng không được dùng thử hàng\n" +
+                    "\n" +
+                    "KHONGCHOXEMHANG nghĩa là Người mua không được phép xem hàng",
+            example = "CHOXEMHANGKHONGTHU"
+    )
     private String required_note;
     private List<GhnItem> items;
 }
