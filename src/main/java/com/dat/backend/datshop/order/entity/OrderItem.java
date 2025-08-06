@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity(name = "product_items")
+@Entity(name = "order_item")
 public class OrderItem {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)

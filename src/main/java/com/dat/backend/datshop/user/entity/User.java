@@ -24,8 +24,8 @@ public class User {
     private Long id;
     private String email;
     private String password;
-    private String name;
-    private String phoneNumber;
+    private String fullName;
+    private String phone;
     @Enumerated(jakarta.persistence.EnumType.STRING)
     private UserRole role;
     private boolean isActive;

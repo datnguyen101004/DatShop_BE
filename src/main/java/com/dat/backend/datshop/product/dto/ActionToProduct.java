@@ -13,7 +13,7 @@ public class ActionToProduct {
     private String name;
     private String description;
     private String imageUrl;
-    private double price;
+    private int price;
     private int stockQuantity;
     private String category;
 }

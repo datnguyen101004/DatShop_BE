@@ -42,8 +42,8 @@ public class AuthServiceImpl implements AuthService {
         User newUser = new User();
         newUser.setEmail(email);
         newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        newUser.setName(registerRequest.getName());
-        newUser.setPhoneNumber(registerRequest.getPhoneNumber());
+        newUser.setFullName(registerRequest.getName());
+        newUser.setPhone(registerRequest.getPhoneNumber());
         newUser.setAddress(registerRequest.getAddress());
         newUser.setAvatarUrl(registerRequest.getAvatarUrl());
         newUser.setActive(true);
@@ -113,8 +113,8 @@ public class AuthServiceImpl implements AuthService {
         return LoginResponse.builder()
                 .userId(user.getId())
                 .email(email)
-                .name(user.getName())
-                .phoneNumber(user.getPhoneNumber())
+                .name(user.getFullName())
+                .phoneNumber(user.getPhone())
                 .address(user.getAddress())
                 .avatarUrl(user.getAvatarUrl())
                 .accessToken(accessToken)
