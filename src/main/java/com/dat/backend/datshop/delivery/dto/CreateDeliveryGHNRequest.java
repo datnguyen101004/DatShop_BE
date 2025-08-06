@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreateDeliveryRequest {
+public class CreateDeliveryGHNRequest {
     private String from_name;
     private String from_phone;
     private String from_address;
@@ -34,26 +34,26 @@ public class CreateDeliveryRequest {
             example = "shop_1"
     )
     private String client_order_code;
-//    private String content;
+    private String content;
     @Schema(description = "Khối lượng (gram)", example = "30")
-    private int weight;
+    private int weight = 30;
     @Schema(description = "Chiều dài (cm)", example = "30")
-    private int length;
+    private int length = 30;
     @Schema(description = "Chiều rộng (cm)", example = "30")
-    private int width;
+    private int width = 30;
     @Schema(description = "Chiều cao (cm)", example = "30")
-    private int height;
+    private int height = 30;
     private String coupon;
     @Schema(
             description = "Mã loại dịch vụ cố định. Trong đó:  2: Hàng nhẹ, 5: Hàng nặng. Hàng nhẹ sử dụng length, width, height và weight. Hàng nặng sử dụng items[].length, items[].width, items[].height và items[].weight",
             example = "2"
     )
-    private int service_type_id;
+    private int service_type_id = 2; // Mặc định là "Hàng nhẹ"
     @Schema(
             description = "Mã người thanh toán phí dịch vụ. Trong đó: 1: Người bán/Người gửi, 2: Người mua/Người nhận.",
             example = "2"
     )
-    private int payment_type_id = 2; // Default to "Người mua/Người nhận"
+    private int payment_type_id = 2; // Mặc định là "Người mua/Người nhận"
     private String note;
     @Schema(
             description = "Ghi chú bắt buộc, Bao gồm: CHOTHUHANG, CHOXEMHANGKHONGTHU, KHONGCHOXEMHANG\n" +

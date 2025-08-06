@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,5 +16,5 @@ public class DeliveryResponse {
     private String order_code;
     private String trans_type;
     private int total_fee;
-    private String expected_delivery_time;
+    private LocalDateTime expected_delivery_time;
 }

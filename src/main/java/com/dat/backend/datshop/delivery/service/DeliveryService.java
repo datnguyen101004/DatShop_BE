@@ -1,15 +1,12 @@
 package com.dat.backend.datshop.delivery.service;
 
-import com.dat.backend.datshop.delivery.dto.CancelDataResponse;
-import com.dat.backend.datshop.delivery.dto.CancelDeliveryRequest;
-import com.dat.backend.datshop.delivery.dto.CreateDeliveryRequest;
-import com.dat.backend.datshop.delivery.dto.DeliveryResponse;
+import com.dat.backend.datshop.delivery.dto.*;
 
 import java.util.List;
 
 public interface DeliveryService {
 
-    DeliveryResponse createDelivery(CreateDeliveryRequest createDeliveryRequest);
+    DeliveryResponse createDelivery(CreateDeliveryForOrder createDeliveryForOrder);
 
     List<CancelDataResponse> cancelDelivery(CancelDeliveryRequest cancelDeliveryRequest);
 }
