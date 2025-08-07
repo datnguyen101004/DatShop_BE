@@ -9,6 +9,7 @@ import com.dat.backend.datshop.delivery.repository.DeliveryRepository;
 import com.dat.backend.datshop.delivery.service.DeliveryService;
 import com.dat.backend.datshop.order.entity.Order;
 import com.dat.backend.datshop.order.entity.OrderItem;
+import com.dat.backend.datshop.order.entity.OrderStatus;
 import com.dat.backend.datshop.order.repository.OrderItemRepository;
 import com.dat.backend.datshop.order.repository.OrderRepository;
 import com.dat.backend.datshop.product.entity.Product;
@@ -17,6 +18,7 @@ import com.dat.backend.datshop.user.entity.User;
 import com.dat.backend.datshop.user.repository.UserRepository;
 import com.dat.backend.datshop.util.ConvertStringToLocalDateTime;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,9 +26,9 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -46,6 +48,9 @@ public class DeliveryServiceImpl implements DeliveryService {
     private String ghn_token;
 
     public DeliveryResponse createDelivery(CreateDeliveryForOrder createDeliveryForOrder) {
+
+        // Chỉ cho phép tạo đơn khi đơn hàng trong trạng thái PREPARING
+        checkOrderStatus(createDeliveryForOrder.getOrderId());
 
         // Lấy ra các thông tin cần thiết từ CreateDeliveryForOrder và chuyển đổi sang CreateDeliveryGHNRequest
 
@@ -85,6 +90,9 @@ public class DeliveryServiceImpl implements DeliveryService {
         Delivery delivery = deliveryMapper.createDeliveryRequestToDeliveryEntity(createDeliveryGHNRequest);
         delivery.setDeliveryStatus(DeliveryStatus.PENDING);
         delivery.setGhnOrderCode(dataResponse.getOrder_code());
+        delivery.setUserId(createDeliveryForOrder.getUserId());
+        delivery.setShopId(createDeliveryForOrder.getShopId());
+        delivery.setOrderId(createDeliveryForOrder.getOrderId());
         delivery.setTotalFee((long) dataResponse.getTotal_fee());
 
         // Chuyển đổi expected_delivery_time từ chuỗi sang LocalDateTime
@@ -104,6 +112,15 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .trans_type(dataResponse.getTrans_type())
                 .expected_delivery_time(expectedDeliveryTime)
                 .build();
+    }
+
+    private void checkOrderStatus(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        if (!order.getOrderStatus().equals(OrderStatus.PREPARING)) {
+            throw new RuntimeException("Cannot create delivery for order with status: " + order.getOrderStatus());
+        }
+        log.info("Order with id {} is in PREPARING status, proceeding to create delivery.", orderId);
     }
 
     private CreateDeliveryGHNRequest createNewDeliveryGHNRequest(CreateDeliveryForOrder createDeliveryForOrder) {
@@ -136,14 +153,11 @@ public class DeliveryServiceImpl implements DeliveryService {
         String toDistrictName = shop.getDistrictName();
         String toProvinceName = shop.getProvinceName();
 
-        // Tạo các đối tượng GHN item
-        List<GhnItem> items = new ArrayList<>();
-
         // Lấy danh sách các sản phẩm trong đơn hàng
         List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(orderId);
 
         // Map các sản phẩm sang GhnItem
-        items = orderItems.stream().map(orderItem -> {
+        List<GhnItem> items = orderItems.stream().map(orderItem -> {
             GhnItem ghnItem = new GhnItem();
             Product product = productRepository.findById(orderItem.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found with id: " + orderItem.getProductId()));
@@ -152,7 +166,7 @@ public class DeliveryServiceImpl implements DeliveryService {
             ghnItem.setQuantity(orderItem.getQuantity());
             ghnItem.setPrice(product.getPrice());
             return ghnItem;
-        }).toList();
+        }).collect(Collectors.toList());
 
         // Tạo đối tượng CreateDeliveryGHNRequest
         CreateDeliveryGHNRequest createDeliveryGHNRequest = new CreateDeliveryGHNRequest();
@@ -185,6 +199,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     }
 
     // Hủy đơn giao hàng
+    @Transactional
     public List<CancelDataResponse> cancelDelivery(CancelDeliveryRequest cancelDeliveryRequest) {
         // Gọi API GHN để hủy đơn hàng
         CancelResponse cancelResponse = webClientConfig.webClient()
@@ -201,6 +216,27 @@ public class DeliveryServiceImpl implements DeliveryService {
         if (cancelResponse == null ||cancelResponse.getCode() != 200) {
             throw new RuntimeException("Not found order");
         }
+
+        // Cập nhật trạng thái đơn hàng trong cơ sở dữ liệu
+        updateOrderAndDeliveryStatus(cancelDeliveryRequest.getOrder_codes());
+
         return cancelResponse.getData();
+    }
+
+    private void updateOrderAndDeliveryStatus(List<String> orderCodes) {
+        // Cập nhật trạng thái đơn hàng và trạng thái giao hàng trong cơ sở dữ liệu cho từng mã đơn hàng
+        for (String orderCode : orderCodes) {
+            // Cập nhật trạng thái giao hàng
+            Delivery delivery = deliveryRepository.findByGhnOrderCode(orderCode)
+                    .orElseThrow(() -> new RuntimeException("Delivery not found with GHN order code: " + orderCode));
+            delivery.setDeliveryStatus(DeliveryStatus.CANCEL);
+            deliveryRepository.save(delivery);
+
+            // Cập nhật trạng thái đơn hàng
+            Order order = orderRepository.findById(delivery.getOrderId())
+                    .orElseThrow(() -> new RuntimeException("Order not found with id: " + delivery.getOrderId()));
+            order.setOrderStatus(OrderStatus.CANCEL);
+            orderRepository.save(order);
+        }
     }
 }

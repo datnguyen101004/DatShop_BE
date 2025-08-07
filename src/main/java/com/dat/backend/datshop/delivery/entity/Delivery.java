@@ -22,6 +22,7 @@ public class Delivery {
 
     private Long userId; // ID của người nhận
     private Long shopId; // ID của shop
+    private Long orderId; // ID của đơn hàng
     private String clientOrderCode; // Mã đơn hàng của khách hàng
     private String ghnOrderCode; // Mã đơn hàng của GHN
     private Long totalFee; // Tổng phí giao hàng
