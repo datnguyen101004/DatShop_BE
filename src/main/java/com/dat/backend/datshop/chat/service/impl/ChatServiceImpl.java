@@ -3,7 +3,6 @@ package com.dat.backend.datshop.chat.service.impl;
 import com.dat.backend.datshop.chat.dto.SendMessage;
 import com.dat.backend.datshop.chat.entity.Conversation;
 import com.dat.backend.datshop.chat.entity.Message;
-import com.dat.backend.datshop.chat.mapper.MessageMapper;
 import com.dat.backend.datshop.chat.repository.ConversationRepository;
 import com.dat.backend.datshop.chat.repository.MessageRepository;
 import com.dat.backend.datshop.chat.service.ChatService;
