@@ -50,11 +50,9 @@ public class JwtFilter extends OncePerRequestFilter {
                     securityContext.setAuthentication(usernamePasswordAuthenticationToken);
                     SecurityContextHolder.setContext(securityContext);
                 }
-            } else {
-                throw new RuntimeException("Invalid JWT token");  // Nếu không tìm thấy username, ném ngoại lệ
             }
         } catch (Exception e) {
-            throw new RuntimeException("Invalid JWT token");  // Ném ngoại lệ khi có lỗi trong quá trình xử lý
+            log.error("Lỗi khi xác thực JWT: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);
