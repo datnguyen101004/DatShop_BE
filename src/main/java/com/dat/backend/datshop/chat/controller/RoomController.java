@@ -16,6 +16,6 @@ public class RoomController {
 
     @PostMapping("/create")
     public ResponseEntity<ConversationResponse> createRoom(@RequestBody Long receiverId, Authentication authentication) {
-        return ResponseEntity.ok(conversationService.createRoom(receiverId, authentication.getName()));
+        return ResponseEntity.ok(conversationService.getOrCreateConservation(receiverId, authentication.getName()));
     }
 }
