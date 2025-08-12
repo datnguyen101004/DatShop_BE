@@ -13,5 +13,7 @@ import java.util.List;
 @Builder
 public class ConversationResponse {
     private String conversationId;
+    private Long user1Id; // ID của người dùng 1
+    private Long user2Id; // ID của người dùng 2
     private List<MessageResponse> listMessages;
 }

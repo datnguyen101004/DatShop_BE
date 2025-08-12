@@ -4,7 +4,7 @@ import com.dat.backend.datshop.chat.dto.ConversationResponse;
 import com.dat.backend.datshop.chat.dto.MessageResponse;
 import com.dat.backend.datshop.chat.entity.Conversation;
 import com.dat.backend.datshop.chat.entity.Message;
-import com.dat.backend.datshop.chat.mapper.MessageMapper;
+import com.dat.backend.datshop.chat.mapper.ChatMapper;
 import com.dat.backend.datshop.chat.repository.ConversationRepository;
 import com.dat.backend.datshop.chat.service.ConversationService;
 import com.dat.backend.datshop.chat.util.CreateConversationId;
@@ -23,7 +23,7 @@ import java.util.Optional;
 public class ConversationServiceImpl implements ConversationService {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
-    private final MessageMapper messageMapper;
+    private final ChatMapper chatMapper;
 
     @Override
     public ConversationResponse getOrCreateConservation(Long receiverId, String name) {
@@ -31,30 +31,34 @@ public class ConversationServiceImpl implements ConversationService {
         User user = userRepository.findByEmail(name)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + name));
 
-        // Tạo id cuộc trò chuyện
-        String conversationId = CreateConversationId.createConversationId(user.getId(), receiverId);
+        Optional<Conversation> conversationOp = conversationRepository.findByUser1IdAndUser2Id(user.getId(), receiverId);
 
-        // Kiểm tra xem cuộc trò chuyện đã tồn tại chưa
-        Optional<Conversation> conversationOp = conversationRepository.findByConversationId(conversationId);
         if (conversationOp.isPresent()) {
-            log.info("Conversation with id {} already exists", conversationId);
+            log.info("Conversation already exists between user {} and receiver {}", user.getId(), receiverId);
             Conversation existingConversation = conversationOp.get();
 
-            List<Message> messages = existingConversation.getMessageList();
+            List<Message> messages = existingConversation.getListMessages();
             List<MessageResponse> messageResponses = messages.stream()
-                    .map(messageMapper::messageToMessageResponse)
+                    .map(chatMapper::messageToMessageResponse)
                     .toList();
 
             // Trả về thông tin cuộc trò chuyện
             return ConversationResponse.builder()
                     .conversationId(existingConversation.getConversationId())
+                    .user1Id(existingConversation.getUser1Id())
+                    .user2Id(existingConversation.getUser2Id())
                     .listMessages(messageResponses)
                     .build();
         }
 
+
         // Nếu cuộc trò chuyện chưa tồn tại, tạo mới
+        // Tạo ID cuộc trò chuyện duy nhất
+        String conversationId = CreateConversationId.createConversationId(user.getId(), receiverId);
+
         Conversation newConversation = Conversation.builder()
                 .conversationId(conversationId)
+                .user1Id(user.getId())
                 .build();
 
         conversationRepository.save(newConversation);
@@ -64,5 +68,28 @@ public class ConversationServiceImpl implements ConversationService {
                 .conversationId(newConversation.getConversationId())
                 .listMessages(List.of()) // Trả về danh sách tin nhắn rỗng
                 .build();
+    }
+
+    @Override
+    public List<ConversationResponse> getAllConversations(String name) {
+    User user = userRepository.findByEmail(name)
+            .orElseThrow(() -> new RuntimeException("User not found with email: " + name));
+
+    List<Conversation> conversations = conversationRepository.findByUser1IdOrUser2Id(user.getId(), user.getId());
+
+    return conversations.stream()
+            .map(conversation -> {
+                List<MessageResponse> messageResponses = conversation.getListMessages().stream()
+                        .map(chatMapper::messageToMessageResponse)
+                        .toList();
+
+                return ConversationResponse.builder()
+                        .conversationId(conversation.getConversationId())
+                        .user1Id(conversation.getUser1Id())
+                        .user2Id(conversation.getUser2Id())
+                        .listMessages(messageResponses)
+                        .build();
+            })
+            .toList();
     }
 }

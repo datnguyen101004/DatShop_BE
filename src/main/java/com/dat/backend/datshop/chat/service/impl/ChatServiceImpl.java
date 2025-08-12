@@ -36,15 +36,27 @@ public class ChatServiceImpl implements ChatService {
             // Tạo tin nhắn mới
             Message message = Message.builder()
                     .conversation(conversation)
-                    .receiverId(sendMessageRequest.getReceiverId())
                     .senderId(user.getId())
                     .message(sendMessageRequest.getMessage())
                     .build();
-
             messageRepository.save(message);
+
+            // Cập nhật receiverId là userId của người còn lại trong cuộc trò chuyện khi gửi tin nhắn lần đầu
+            Long receiverId = sendMessageRequest.getReceiverId();
+            if (conversation.getUser1Id() == null) {
+                conversation.setUser1Id(receiverId);
+                conversationRepository.save(conversation); // Lưu lại cuộc trò chuyện sau khi cập nhật user1Id
+            }
+
+            if (conversation.getUser2Id() == null) {
+                conversation.setUser2Id(receiverId);
+                conversationRepository.save(conversation); // Lưu lại cuộc trò chuyện sau khi cập nhật user2Id
+            }
+
             return sendMessageRequest.getMessage();
         }
 
+        // Nếu cuộc trò chuyện không tồn tại, ném ra lỗi
         throw new RuntimeException("Conversation not found");
     }
 }

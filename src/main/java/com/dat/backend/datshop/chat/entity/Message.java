@@ -26,7 +26,6 @@ public class Message {
     private String message;
 
     private Long senderId; // ID của người gửi
-    private Long receiverId; // ID của người nhận
 
     private boolean isRead = false; // Trạng thái đã đọc
 

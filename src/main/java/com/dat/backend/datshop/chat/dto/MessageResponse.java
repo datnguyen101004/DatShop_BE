@@ -15,7 +15,6 @@ public class MessageResponse {
     private Long id;
     private String conversationId;
     private Long senderId;
-    private Long receiverId;
     private String message;
     private boolean isRead;
     private LocalDateTime sentAt;
