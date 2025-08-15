@@ -1,6 +1,6 @@
 package com.dat.backend.datshop.delivery.service.impl;
 import com.dat.backend.datshop.coupon.entity.Coupon;
-import com.dat.backend.datshop.delivery.config.WebClientConfig;
+import com.dat.backend.datshop.config.WebClientConfig;
 import com.dat.backend.datshop.delivery.dto.*;
 import com.dat.backend.datshop.delivery.entity.Delivery;
 import com.dat.backend.datshop.delivery.entity.DeliveryStatus;
@@ -46,6 +46,8 @@ public class DeliveryServiceImpl implements DeliveryService {
     private String shopId;
     @Value("${ghn.token}")
     private String ghn_token;
+    @Value("${ghn.apiUrl}")
+    private String ghn_url;
 
     public DeliveryResponse createDelivery(CreateDeliveryForOrder createDeliveryForOrder) {
 
@@ -61,7 +63,7 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         CreateDeliveryResponse createDeliveryResponse = webClientConfig.webClient()
                 .post()
-                .uri("/shipping-order/create")
+                .uri(ghn_url+"/shipping-order/create")
                 .header("Content-Type", "application/json")
                 .header("token", ghn_token)
                 .header("shopId", shopId)
@@ -160,7 +162,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         List<GhnItem> items = orderItems.stream().map(orderItem -> {
             GhnItem ghnItem = new GhnItem();
             Product product = productRepository.findById(orderItem.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + orderItem.getProductId()));
+                    .orElseThrow(() -> new RuntimeException("Information not found with id: " + orderItem.getProductId()));
             ghnItem.setName(product.getName());
             ghnItem.setCode("pr_" + product.getId());
             ghnItem.setQuantity(orderItem.getQuantity());
@@ -204,7 +206,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         // Gọi API GHN để hủy đơn hàng
         CancelResponse cancelResponse = webClientConfig.webClient()
                 .post()
-                .uri("/switch-status/cancel")
+                .uri(ghn_url+"/switch-status/cancel")
                 .header("Content-Type", "application/json")
                 .header("token", ghn_token)
                 .header("shopId", shopId)

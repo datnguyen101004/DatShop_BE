@@ -39,7 +39,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
 
         // Log product addition
-        log.info("Product added successfully: {}", product.getName());
+        log.info("Information added successfully: {}", product.getName());
         log.info("Author: {}", user.getEmail());
         return productMapper.productToProductResponse(product);
     }
@@ -48,8 +48,8 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse getProductById(Long productId) {
         log.info("Fetching product with ID: {}", productId);
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
-        log.info("Product found: {}", product.getName());
+                .orElseThrow(() -> new RuntimeException("Information not found with ID: " + productId));
+        log.info("Information found: {}", product.getName());
         return productMapper.productToProductResponse(product);
     }
 
@@ -76,7 +76,7 @@ public class ProductServiceImpl implements ProductService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
+                .orElseThrow(() -> new RuntimeException("Information not found with ID: " + productId));
 
         // Check authorization
         if (!Objects.equals(product.getAuthor(), user)) {
@@ -96,7 +96,7 @@ public class ProductServiceImpl implements ProductService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + productId));
+                .orElseThrow(() -> new RuntimeException("Information not found with ID: " + productId));
 
         // Check authorization
         if (!Objects.equals(product.getAuthor(), user)) {
@@ -111,7 +111,7 @@ public class ProductServiceImpl implements ProductService {
         product.setImageUrl(actionToProduct.getImageUrl());
         product.setCategory(actionToProduct.getCategory());
         productRepository.save(product);
-        log.info("Product with ID: {} updated successfully by user: {}", productId, email);
+        log.info("Information with ID: {} updated successfully by user: {}", productId, email);
 
         return productMapper.productToProductResponse(product);
     }

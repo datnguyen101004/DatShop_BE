@@ -39,9 +39,9 @@ public class CartServiceImpl implements CartService {
 
         // Check if the stock is enough
         Product product = productRepository.findById(addOrRemoveProduct.getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + addOrRemoveProduct.getProductId()));
+                .orElseThrow(() -> new RuntimeException("Information not found with ID: " + addOrRemoveProduct.getProductId()));
         if (product.getStockQuantity() < addOrRemoveProduct.getQuantity()) {
-            log.warn("Product has enough stock to add product to the cart");
+            log.warn("Information has enough stock to add product to the cart");
             throw new RuntimeException("Not enough stock for product ID: " + addOrRemoveProduct.getProductId());
         }
 
@@ -107,8 +107,8 @@ public class CartServiceImpl implements CartService {
             return "Removed product from cart successfully";
         }
 
-        log.warn("Product ID {} not found in cart ID {}", addOrRemoveProduct.getProductId(), cart.getId());
-        throw new RuntimeException("Product not found in cart");
+        log.warn("Information ID {} not found in cart ID {}", addOrRemoveProduct.getProductId(), cart.getId());
+        throw new RuntimeException("Information not found in cart");
     }
 
     // Check if cart exists for user, if not create one

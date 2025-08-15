@@ -63,7 +63,7 @@ public class OrderServiceImpl implements OrderService {
 
         // Set shopId cho đơn hàng
         Product product1 = productRepository.findById(createOrderRequest.getProductItems().getFirst().getProductId())
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + createOrderRequest.getProductItems().getFirst().getProductId()));
+                .orElseThrow(() -> new RuntimeException("Information not found with id: " + createOrderRequest.getProductItems().getFirst().getProductId()));
         newOrder.setShop(product1.getAuthor());
 
         // Chuyển coupon từ id sang entity nếu có
@@ -72,7 +72,7 @@ public class OrderServiceImpl implements OrderService {
         long totalPrice = createOrderRequest.getProductItems().stream()
                 .mapToLong(item -> {
                     Product product = productRepository.findById(item.getProductId())
-                            .orElseThrow(() -> new RuntimeException("Product not found with id: " + item.getProductId()));
+                            .orElseThrow(() -> new RuntimeException("Information not found with id: " + item.getProductId()));
                     return (long) (product.getPrice() * item.getQuantity());
                 })
                 .sum();
@@ -248,7 +248,7 @@ public class OrderServiceImpl implements OrderService {
             List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(order.getId());
             for (OrderItem item : orderItems) {
                 Product product = productRepository.findById(item.getProductId())
-                        .orElseThrow(() -> new RuntimeException("Product not found with id: " + item.getProductId()));
+                        .orElseThrow(() -> new RuntimeException("Information not found with id: " + item.getProductId()));
                 product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
                 productRepository.save(product);
             }
