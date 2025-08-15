@@ -45,3 +45,7 @@ springdoc:
     csrf:
       enabled: true
     path: /swagger-ui.html
+
+ollama:
+  embed-model: nomic-embed-text
+  chat-model: mistral
