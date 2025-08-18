@@ -18,6 +18,9 @@ vnpay:
   vnp_ApiUrl: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 
 ghn:
-  token: ${GHN_TOKEN}
-  shopId: ${GHN_SHOP_ID}
-  apiUrl: ${GHN_API_URL_TEST}
+  token: dd870d29-63c0-11f0-9b81-222185cb68c8
+  shopId: https://dev-online-gateway.ghn.vn/shiip/public-api/v2
+  apiUrl: 197136
+
+GOOGLE:
+  gemini-api-key: ${GEMINI_API_KEY}
