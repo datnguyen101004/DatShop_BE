@@ -15,8 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChatbotController {
     private final ChatService chatService;
 
-    @PostMapping("/ask")
+    @PostMapping("/mistral/ask")
     public ResponseEntity<String> ask(@RequestBody String question) throws JsonProcessingException {
-        return ResponseEntity.ok(chatService.ask(question));
+        return ResponseEntity.ok(chatService.askMistral(question));
+    }
+
+    @PostMapping("/gemini/ask")
+    public ResponseEntity<String> askGemini(@RequestBody String question) throws JsonProcessingException {
+        return ResponseEntity.ok(chatService.askGemini(question));
     }
 }

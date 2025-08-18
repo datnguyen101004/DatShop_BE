@@ -13,8 +13,9 @@ import java.util.Map;
 public class ChatService {
     private final OllamaService ollamaService;
     private final QdrantService qdrantService;
+    private final GeminiService geminiService;
 
-    public String ask(String question) throws JsonProcessingException {
+    public String askMistral(String question) throws JsonProcessingException {
         // Chuyển đổi câu hỏi thành chữ vector
         double[] vectorQuestion = ollamaService.generateEmbedding(question).block();
 
@@ -35,5 +36,16 @@ public class ChatService {
         }
 
         return response;
+    }
+
+    public String askGemini(String question) throws JsonProcessingException {
+        // Chuyển đổi câu hỏi thành chữ vector
+        double[] vectorQuestion = ollamaService.generateEmbedding(question).block();
+
+        // Search top 5 sản phẩm tương tự trong Qdrant
+        List<Map<String, Object>> top5Products = searchTop5Products(vectorQuestion);
+
+        // Tạo câu trả lời dựa trên các sản phẩm tìm được bằng Gemini
+        return geminiService.generateResponse(question, top5Products);
     }
 }
