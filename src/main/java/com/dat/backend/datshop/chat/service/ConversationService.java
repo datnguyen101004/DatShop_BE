@@ -8,4 +8,6 @@ public interface ConversationService {
     ConversationResponse getOrCreateConservation(Long receiverID, String name);
 
     List<ConversationResponse> getAllConversations(String name);
+
+    ConversationResponse getConversation(String conversationId, String name);
 }

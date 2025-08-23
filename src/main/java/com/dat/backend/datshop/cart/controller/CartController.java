@@ -1,7 +1,8 @@
 package com.dat.backend.datshop.cart.controller;
 
-import com.dat.backend.datshop.cart.dto.AddOrRemoveProduct;
+import com.dat.backend.datshop.cart.dto.ProductItemRequest;
 import com.dat.backend.datshop.cart.dto.CartItemResponse;
+import com.dat.backend.datshop.cart.dto.UpdateCartProduct;
 import com.dat.backend.datshop.cart.service.CartService;
 import com.dat.backend.datshop.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +19,8 @@ public class CartController {
 
     // Add product to cart
     @PostMapping("/add")
-    public ApiResponse<String> addProductToCart(@RequestBody AddOrRemoveProduct addOrRemoveProduct, Authentication authentication) {
-        return ApiResponse.success(cartService.addProductToCart(addOrRemoveProduct, authentication.getName()));
+    public ApiResponse<String> addProductToCart(@RequestBody ProductItemRequest productItemRequest, Authentication authentication) {
+        return ApiResponse.success(cartService.addProductToCart(productItemRequest, authentication.getName()));
     }
 
     // Get cart of user
@@ -29,8 +30,20 @@ public class CartController {
     }
 
     // Remove product from cart
-    @DeleteMapping("/remove")
-    public ApiResponse<String> removeProductFromCart(@RequestBody AddOrRemoveProduct addOrRemoveProduct, Authentication authentication) {
-       return ApiResponse.success(cartService.removeProductFromCart(addOrRemoveProduct, authentication.getName()));
+    @DeleteMapping("/{id}")
+    public ApiResponse<String> removeProductFromCart(@PathVariable Long id, Authentication authentication) {
+       return ApiResponse.success(cartService.removeProductFromCart(id, authentication.getName()));
+    }
+
+    // Update cart item quantity
+    @PutMapping("/update")
+    public ApiResponse<String> updateCartItemQuantity(@RequestBody UpdateCartProduct updateCartProduct, Authentication authentication) {
+        return ApiResponse.success(cartService.updateCartItemQuantity(updateCartProduct, authentication.getName()));
+    }
+
+    // Clear cart
+    @DeleteMapping("/clear")
+    public ApiResponse<String> clearCart(Authentication authentication) {
+        return ApiResponse.success(cartService.clearCart(authentication.getName()));
     }
 }

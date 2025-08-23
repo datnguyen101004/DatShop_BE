@@ -21,6 +21,8 @@ public class VNPayConfig {
     public String vnp_returnUrl;
     @Value("${vnpay.vnp_ApiUrl}")
     public String vnp_apiUrl;
+    @Value("${vnpay.vnp_IpnUrl}")
+    public String vnp_IpnUrl;
 
     public Map<String, String> createVnPayUrl(Long orderId) {
         Map< String, String > vnp_Params = new HashMap<>();
@@ -29,12 +31,11 @@ public class VNPayConfig {
         vnp_Params.put("vnp_Command", "pay");
         vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
         vnp_Params.put("vnp_CurrCode", "VND");
-        vnp_Params.put("vnp_TxnRef", "A" + System.currentTimeMillis());
+        vnp_Params.put("vnp_TxnRef", orderId.toString());
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang mua hang tai cua hang Dat Shop");
         vnp_Params.put("vnp_OrderType", "other");
         vnp_Params.put("vnp_Locale", "vn");
-        String returnUrl = vnp_returnUrl + "?orderId=" + orderId;
-        vnp_Params.put("vnp_ReturnUrl", returnUrl);
+        vnp_Params.put("vnp_ReturnUrl", vnp_returnUrl);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         vnp_Params.put("vnp_CreateDate", LocalDateTime.now().format(formatter));
         vnp_Params.put("vnp_ExpireDate", LocalDateTime.now().plusDays(1).format(formatter));

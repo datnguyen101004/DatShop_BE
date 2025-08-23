@@ -1,4 +1,4 @@
-package com.dat.backend.datshop.authentication.dto;
+package com.dat.backend.datshop.cart.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RegisterRequest {
-    private String email;
-    private String password;
-    private String name;
+public class ProductItemRequest {
+    private Long productId;
+    private int quantity;
 }

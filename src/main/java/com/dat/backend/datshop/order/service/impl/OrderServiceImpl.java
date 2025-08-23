@@ -73,7 +73,7 @@ public class OrderServiceImpl implements OrderService {
                 .mapToLong(item -> {
                     Product product = productRepository.findById(item.getProductId())
                             .orElseThrow(() -> new RuntimeException("Information not found with id: " + item.getProductId()));
-                    return (long) (product.getPrice() * item.getQuantity());
+                    return  ((long) product.getPrice() * item.getQuantity());
                 })
                 .sum();
 
@@ -213,70 +213,105 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public String paymentCallbackHandler(HttpServletRequest request) {
-        // Lấy các tham số từ request
-        String status = request.getParameter("vnp_ResponseCode");
-        String orderId = request.getParameter("orderId");
+    public Map<String, String> paymentCallbackHandler(HttpServletRequest request) {
 
-        // Kiểm tra trạng thái thanh toán
-        if (status.equals("00")) {
-            /*                       PaymentMethod successful
-             * Cập nhật trạng thái đơn hàng và bill
-             */
+        // Lấy thông tin giao dịch
+        String responseCode = request.getParameter("vnp_ResponseCode"); // 00 = thành công
+        String txnRef = request.getParameter("vnp_TxnRef");             // orderId
+        String amountStr = request.getParameter("vnp_Amount");
 
-            // Lấy đơn hàng và bill
-            Order order = orderRepository.findById(Long.parseLong(orderId))
-                    .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
-            Bill bill = billRepository.findByOrderId(Long.valueOf(orderId))
-                    .orElseThrow(() -> new RuntimeException("Bill not found for order id: " + orderId));
+        try {
+            //Kiểm tra order trong DB
+            Order order = orderRepository.findById(Long.parseLong(txnRef))
+                    .orElse(null);
 
-            // Cập nhật trạng thái đơn hàng
-            order.setOrderStatus(OrderStatus.PREPARING);
-            bill.setPaymentStatus(PaymentStatus.SUCCESS);
-
-            // Lưu cập nhật đơn hàng và bill
-            orderRepository.save(order);
-            billRepository.save(bill);
-
-            // Giảm số lượng coupon nếu có
-            if (order.getCoupon() != null) {
-                applyCouponUsage(order.getCoupon());
+            if (order == null) {
+                return Map.of(
+                        "RspCode", "01",
+                        "Message", "Order not found"
+                );
             }
 
-            // Giảm số lượng sản phẩm trong kho
-            // Lấy tất cả các sản phẩm trong đơn hàng
-            List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(order.getId());
-            for (OrderItem item : orderItems) {
-                Product product = productRepository.findById(item.getProductId())
-                        .orElseThrow(() -> new RuntimeException("Information not found with id: " + item.getProductId()));
-                product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
-                productRepository.save(product);
+            Bill bill = billRepository.findByOrderId(order.getId())
+                    .orElseThrow(() -> new RuntimeException("Bill not found"));
+
+            // Kiểm tra trạng thái (chỉ update nếu pending)
+            if (bill.getPaymentStatus() != PaymentStatus.PENDING) {
+                return Map.of(
+                        "RspCode", "02",
+                        "Message", "Order already confirmed"
+                );
             }
 
-            // Giảm số lượng sản phẩm trong giỏ hàng
-            reduceCartItems(order.getUserId(), orderItems);
+            // Update DB theo kết quả
+            if ("00".equals(responseCode)) {
+                // Thanh toán thành công
+                log.info("Giao dịch thành công, cập nhật trạng thái đơn hàng và hóa đơn");
+                order.setOrderStatus(OrderStatus.PREPARING);
+                bill.setPaymentStatus(PaymentStatus.SUCCESS);
 
-            log.info("Payment successful for order id: {}", orderId);
-            return "SUCCESS";
+                // Giảm số lượng coupon nếu có
+                if (order.getCoupon() != null) {
+                    log.info("Applying coupon usage for order id: {}", order.getId());
+                    applyCouponUsage(order.getCoupon());
+                }
+
+                // Giảm tồn kho
+                List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(order.getId());
+                for (OrderItem item : orderItems) {
+                    Product product = productRepository.findById(item.getProductId())
+                            .orElseThrow(() -> new RuntimeException("Product not found"));
+                    product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
+                    productRepository.save(product);
+                }
+
+                // Giảm sản phẩm trong giỏ
+                reduceCartItems(order.getUserId(), orderItems);
+
+                orderRepository.save(order);
+                billRepository.save(bill);
+
+                return Map.of(
+                        "RspCode", "00",
+                        "Message", "Confirm Success"
+                );
+            } else {
+                // Thanh toán thất bại
+                log.info("Order confirm failure");
+                bill.setPaymentStatus(PaymentStatus.FAILED);
+                order.setOrderStatus(OrderStatus.CANCEL);
+
+                orderRepository.save(order);
+                billRepository.save(bill);
+
+                return Map.of(
+                        "RspCode", "00",
+                        "Message", "Confirm Failure"
+                );
+            }
+
+        } catch (Exception e) {
+            return Map.of(
+                    "RspCode", "99",
+                    "Message", "Unknown error"
+            );
         }
-
-        // Trường hợp thanh toán không thành công
-        log.warn("Payment failed for order id: {} with status: {}", orderId, status);
-
-        return "FAILED";
     }
 
     // Giảm số lượng sản phẩm trong giỏ hàng
     private void reduceCartItems(Long userId, List<OrderItem> orderItems) {
         // Lấy giỏ hàng của người dùng
-        Optional<Cart> cartOptional = cartRepository.findById(userId);
+        Optional<Cart> cartOptional = cartRepository.findByUserId(userId);
 
         // Nếu giỏ hàng không tồn tại, không cần làm gì
         if (cartOptional.isEmpty()) {
+            log.warn("Cart not found for userId: {}", userId);
             return;
         }
 
         Cart cart = cartOptional.get();
+
+        log.info("reduceCartItems: userId: {}, orderItems: {}", userId, orderItems);
 
         // Lấy danh sách các sản phẩm trong giỏ hàng trùng với sản phẩm trong đơn hàng
         for (OrderItem orderItem : orderItems) {

@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,5 +41,10 @@ public class UserController {
     public com.dat.backend.datshop.template.ApiResponse<UserResponse> getProfile(Authentication authentication) {
         log.info("Get profile for user: {}", authentication.getName());
         return com.dat.backend.datshop.template.ApiResponse.success(userService.getProfile(authentication.getName()));
+    }
+
+    @GetMapping("/profile/{id}")
+    public com.dat.backend.datshop.template.ApiResponse<UserResponse> getUserProfile(@PathVariable Long id, Authentication authentication) {
+        return com.dat.backend.datshop.template.ApiResponse.success(userService.getUserProfile(id, authentication.getName()));
     }
 }

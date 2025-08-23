@@ -21,4 +21,12 @@ public class UserServiceImpl implements UserService {
 
         return userMapper.toUserResponse(user);
     }
+
+    @Override
+    public UserResponse getUserProfile(Long id, String name) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id + " and name: " + name));
+
+        return userMapper.toUserResponse(user);
+    }
 }

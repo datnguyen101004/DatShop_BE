@@ -59,6 +59,7 @@ public class ConversationServiceImpl implements ConversationService {
         Conversation newConversation = Conversation.builder()
                 .conversationId(conversationId)
                 .user1Id(user.getId())
+                .user2Id(receiverId)
                 .build();
 
         conversationRepository.save(newConversation);
@@ -91,5 +92,32 @@ public class ConversationServiceImpl implements ConversationService {
                         .build();
             })
             .toList();
+    }
+
+    @Override
+    public ConversationResponse getConversation(String conversationId, String name) {
+        User user = userRepository.findByEmail(name)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + name));
+        Optional<Conversation> conversationOp = conversationRepository.findByConversationId(conversationId);
+        if (conversationOp.isPresent()) {
+            Conversation conversation = conversationOp.get();
+            if (conversation.getUser1Id().equals(user.getId()) || conversation.getUser2Id().equals(user.getId())) {
+                List<Message> messages = conversation.getListMessages();
+                List<MessageResponse> messageResponses = messages.stream()
+                        .map(chatMapper::messageToMessageResponse)
+                        .toList();
+
+                // Trả về thông tin cuộc trò chuyện
+                return ConversationResponse.builder()
+                        .conversationId(conversation.getConversationId())
+                        .user1Id(conversation.getUser1Id())
+                        .user2Id(conversation.getUser2Id())
+                        .listMessages(messageResponses)
+                        .build();
+            } else {
+                throw new RuntimeException("Access denied to this conversation");
+            }
+        }
+        return null;
     }
 }

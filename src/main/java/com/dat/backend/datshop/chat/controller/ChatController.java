@@ -19,7 +19,7 @@ public class ChatController {
     private final ChatService chatService;
 
     @MessageMapping("/chat/{conversationId}") // Client gửi tin nhắn vào endpoint /app/chat ở client
-    @SendTo("/topic/{conversationId}") // Tất cả người dùng đăng ký với /topic/messages sẽ nhận được tin nhắn này
+    @SendTo("/topic/{conversationId}") // Tất cả người dùng đăng ký với /topic/conversation sẽ nhận được tin nhắn này
     public ApiResponse<String> sendMessage(SendMessage sendMessageRequest, @DestinationVariable String conversationId, Principal principal) {
         return ApiResponse.success(chatService.sendMessage(sendMessageRequest, conversationId, principal.getName()));
     }

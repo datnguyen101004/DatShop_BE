@@ -3,6 +3,7 @@ package com.dat.backend.datshop.chat.controller;
 
 import com.dat.backend.datshop.chat.dto.ConversationResponse;
 import com.dat.backend.datshop.chat.service.ConversationService;
+import com.dat.backend.datshop.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,12 +18,17 @@ public class ConversationController {
     private final ConversationService conversationService;
 
     @PostMapping("/create")
-    public ResponseEntity<ConversationResponse> createRoom(@RequestBody Long receiverId, Authentication authentication) {
-        return ResponseEntity.ok(conversationService.getOrCreateConservation(receiverId, authentication.getName()));
+    public ApiResponse<ConversationResponse> createRoom(@RequestBody Long receiverId, Authentication authentication) {
+        return ApiResponse.success(conversationService.getOrCreateConservation(receiverId, authentication.getName()));
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<ConversationResponse>> getAllConversations(Authentication authentication) {
-        return ResponseEntity.ok(conversationService.getAllConversations(authentication.getName()));
+    public ApiResponse<List<ConversationResponse>> getAllConversations(Authentication authentication) {
+        return ApiResponse.success(conversationService.getAllConversations(authentication.getName()));
+    }
+
+    @GetMapping("/{conversationId}")
+    public ApiResponse<ConversationResponse> getConversation(@PathVariable String conversationId, Authentication authentication) {
+        return ApiResponse.success(conversationService.getConversation(conversationId, authentication.getName()));
     }
 }

@@ -1,5 +1,6 @@
 package com.dat.backend.datshop.chat.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -8,14 +9,11 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final AuthHandshakeInterceptor authHandshakeInterceptor;
     private final UserHandshakeHandler userHandshakeHandler;
-
-    public WebSocketConfig(AuthHandshakeInterceptor authHandshakeInterceptor, UserHandshakeHandler userHandshakeHandler) {
-        this.authHandshakeInterceptor = authHandshakeInterceptor;
-        this.userHandshakeHandler = userHandshakeHandler;
-    }
+    private final AuthChannelInterceptor authChannelInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -36,10 +34,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setAllowedOriginPatterns("*"); // Cho phép tất cả các origin truy cập
         // Thêm SockJS để hỗ trợ fallback nếu WebSocket không khả dụng
         registry.addEndpoint("/ws")
-                .setHandshakeHandler(userHandshakeHandler)
-                .addInterceptors(authHandshakeInterceptor)
+//                .setHandshakeHandler(userHandshakeHandler)
+//                .addInterceptors(authHandshakeInterceptor)
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
     }
 
+    @Override
+    public void configureClientInboundChannel(org.springframework.messaging.simp.config.ChannelRegistration registration) {
+        registration.interceptors(authChannelInterceptor); // Xác thực người dùng cho các tin nhắn gửi lên server
+    }
 }

@@ -7,15 +7,16 @@ spring:
 
 jwt:
   secret-key: 'Y0doaGJXNW5kWGxsYm5SaGRHUmhkR0YwZEhReU1ESTBMakU9'
-  expiredAccess: '1h'
+  expiredAccess: '4h'
   expiredRefresh: '1d'
 
 vnpay:
   vnp_TmnCode: SKM4V1QG
   vnp_HashSecret: KB00HFAUBXPFJMAWNV8JLFIV8X9B8ZJQ
   vnp_PayUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  vnp_ReturnUrl: http://localhost:8080/api/v1/callback/payment-callback
+  vnp_ReturnUrl: http://localhost:5173/payment/callback
   vnp_ApiUrl: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
+  vnp_IpnUrl: https://dfe1bc756b08.ngrok-free.app
 
 ghn:
   token: dd870d29-63c0-11f0-9b81-222185cb68c8

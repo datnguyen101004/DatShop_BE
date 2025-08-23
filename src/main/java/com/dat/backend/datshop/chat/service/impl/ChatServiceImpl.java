@@ -37,6 +37,7 @@ public class ChatServiceImpl implements ChatService {
             Message message = Message.builder()
                     .conversation(conversation)
                     .senderId(user.getId())
+                    .isRead(true)
                     .message(sendMessageRequest.getMessage())
                     .build();
             messageRepository.save(message);
