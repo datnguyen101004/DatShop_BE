@@ -20,8 +20,8 @@ vnpay:
 
 ghn:
   token: dd870d29-63c0-11f0-9b81-222185cb68c8
-  shopId: https://dev-online-gateway.ghn.vn/shiip/public-api/v2
-  apiUrl: 197136
+  shopId: 197136
+  apiUrl: https://dev-online-gateway.ghn.vn/shiip/public-api/v2
 
 GOOGLE:
   gemini-api-key: ${GEMINI_API_KEY}

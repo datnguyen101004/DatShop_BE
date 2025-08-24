@@ -15,5 +15,4 @@ public interface ProductService {
     String deleteProductById(Long productId, String email);
 
     ProductResponse updateProductById(Long productId, ActionToProduct actionToProduct, String email);
-
 }

@@ -2,6 +2,7 @@ package com.dat.backend.datshop.order.controller;
 
 import com.dat.backend.datshop.order.dto.CreateOrderRequest;
 import com.dat.backend.datshop.order.dto.OrderResponse;
+import com.dat.backend.datshop.order.dto.ShopOrderResponse;
 import com.dat.backend.datshop.order.service.OrderService;
 import com.dat.backend.datshop.template.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,5 +28,10 @@ public class OrderController {
     @GetMapping("/all")
     public ApiResponse<List<OrderResponse>> getAllOrders(Authentication authentication) {
         return ApiResponse.success(orderService.getAllOrders(authentication.getName()));
+    }
+
+    @GetMapping("/shop/all")
+    public ApiResponse<List<ShopOrderResponse>> getAllOrdersForShop(Authentication authentication) {
+        return ApiResponse.success(orderService.getAllOrdersForShop(authentication.getName()));
     }
 }

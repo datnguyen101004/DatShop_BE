@@ -59,7 +59,6 @@ public class DeliveryServiceImpl implements DeliveryService {
         CreateDeliveryGHNRequest createDeliveryGHNRequest = createNewDeliveryGHNRequest(createDeliveryForOrder);
 
         log.info("createDeliveryGHNRequest: {}", createDeliveryGHNRequest);
-        log.info("createDeliveryGHNRequest class: {}", createDeliveryGHNRequest.getClass());
 
         CreateDeliveryResponse createDeliveryResponse = webClientConfig.webClient()
                 .post()
@@ -85,8 +84,16 @@ public class DeliveryServiceImpl implements DeliveryService {
             return null;
         }
 
+        log.info("createDeliveryResponse: {}", createDeliveryResponse);
+
         // Nhận phản hồi từ GHN
         DataResponse dataResponse = createDeliveryResponse.getData();
+
+        // Cập nhật trạng thái đơn hàng sang SHIPPING
+        Order order = orderRepository.findById(createDeliveryForOrder.getOrderId())
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + createDeliveryForOrder.getOrderId()));
+        order.setOrderStatus(OrderStatus.SHIPPING);
+        orderRepository.save(order);
 
         // Tạo đơn vận chuyển mới
         Delivery delivery = deliveryMapper.createDeliveryRequestToDeliveryEntity(createDeliveryGHNRequest);
@@ -223,6 +230,21 @@ public class DeliveryServiceImpl implements DeliveryService {
         updateOrderAndDeliveryStatus(cancelDeliveryRequest.getOrder_codes());
 
         return cancelResponse.getData();
+    }
+
+    @Override
+    public DeliveryResponse viewDeliveryByOrderId(Long orderId) {
+        Optional<Delivery> optionalDelivery = deliveryRepository.findByOrderId(orderId);
+        if (optionalDelivery.isPresent()) {
+            Delivery delivery = optionalDelivery.get();
+            return DeliveryResponse.builder()
+                    .id(delivery.getId())
+                    .order_code(delivery.getGhnOrderCode())
+                    .total_fee(Math.toIntExact(delivery.getTotalFee()))
+                    .expected_delivery_time(delivery.getExpectedDeliveryTime())
+                    .build();
+        }
+        return null;
     }
 
     private void updateOrderAndDeliveryStatus(List<String> orderCodes) {

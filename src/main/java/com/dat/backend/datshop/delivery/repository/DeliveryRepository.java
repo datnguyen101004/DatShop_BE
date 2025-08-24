@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface DeliveryRepository extends JpaRepository<Delivery, Long> {
     Optional<Delivery> findByGhnOrderCode(String orderCode);
+
+    Optional<Delivery> findByOrderId(Long orderId);
 }

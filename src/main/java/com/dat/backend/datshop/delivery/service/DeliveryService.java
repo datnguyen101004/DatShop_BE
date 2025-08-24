@@ -9,4 +9,6 @@ public interface DeliveryService {
     DeliveryResponse createDelivery(CreateDeliveryForOrder createDeliveryForOrder);
 
     List<CancelDataResponse> cancelDelivery(CancelDeliveryRequest cancelDeliveryRequest);
+
+    DeliveryResponse viewDeliveryByOrderId(Long orderId);
 }

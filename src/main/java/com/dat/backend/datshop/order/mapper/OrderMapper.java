@@ -3,6 +3,7 @@ package com.dat.backend.datshop.order.mapper;
 import com.dat.backend.datshop.order.dto.CreateOrderRequest;
 import com.dat.backend.datshop.order.dto.OrderResponse;
 import com.dat.backend.datshop.order.dto.ProductItem;
+import com.dat.backend.datshop.order.dto.ShopOrderResponse;
 import com.dat.backend.datshop.order.entity.Order;
 import com.dat.backend.datshop.order.entity.OrderItem;
 import org.mapstruct.Mapper;
@@ -18,4 +19,8 @@ public interface OrderMapper {
 
     @Mapping(target = "orderId", source = "id")
     OrderResponse toOrderResponse(Order order);
+
+    @Mapping(target = "shopId", expression = "java(order.getShop().getId())")
+    @Mapping(target = "orderId", source = "id")
+    ShopOrderResponse toShopOrderResponse(Order order);
 }

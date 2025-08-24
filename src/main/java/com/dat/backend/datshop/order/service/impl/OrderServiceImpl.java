@@ -11,6 +11,7 @@ import com.dat.backend.datshop.order.config.VNPayConfig;
 import com.dat.backend.datshop.order.dto.CreateOrderRequest;
 import com.dat.backend.datshop.order.dto.OrderResponse;
 import com.dat.backend.datshop.order.dto.ProductItem;
+import com.dat.backend.datshop.order.dto.ShopOrderResponse;
 import com.dat.backend.datshop.order.entity.*;
 import com.dat.backend.datshop.order.mapper.OrderMapper;
 import com.dat.backend.datshop.order.repository.BillRepository;
@@ -296,6 +297,24 @@ public class OrderServiceImpl implements OrderService {
                     "Message", "Unknown error"
             );
         }
+    }
+
+    @Override
+    public List<ShopOrderResponse> getAllOrdersForShop(String name) {
+        User user = userRepository.findByEmail(name)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Order> orders = orderRepository.findAllByShopId(user.getId());
+        if (orders.isEmpty()) {
+            return List.of();
+        }
+
+        return orders.stream().map(order -> {
+            List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(order.getId());
+            List<ProductItem> productItems = orderItems.stream().map(orderMapper::toProductItemDto).toList();
+            ShopOrderResponse shopOrderResponse = orderMapper.toShopOrderResponse(order);
+            shopOrderResponse.setProductItems(productItems);
+            return shopOrderResponse;
+        }).toList();
     }
 
     // Giảm số lượng sản phẩm trong giỏ hàng
