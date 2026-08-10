@@ -11,12 +11,12 @@ jwt:
   expiredRefresh: '1d'
 
 vnpay:
-  vnp_TmnCode: SKM4V1QG
-  vnp_HashSecret: KB00HFAUBXPFJMAWNV8JLFIV8X9B8ZJQ
+  vnp_TmnCode: 0JKKYI5Y
+  vnp_HashSecret: YAGTIIYEMTPOWJFCHDZZTUPETFOBHLMP
   vnp_PayUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
   vnp_ReturnUrl: http://localhost:5173/payment/callback
   vnp_ApiUrl: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
-  vnp_IpnUrl: https://dfe1bc756b08.ngrok-free.app
+  vnp_IpnUrl: https://apparent-merry-mite.ngrok-free.app/api/v1/callback/payment-callback
 
 ghn:
   token: dd870d29-63c0-11f0-9b81-222185cb68c8
