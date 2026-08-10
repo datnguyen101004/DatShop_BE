@@ -16,3 +16,6 @@ vnpay:
   vnp_PayUrl: ${VNP_PAYMENT_URL}
   vnp_ReturnUrl: ${VNP_RETURN_URL}
   vnp_ApiUrl: ${VNP_RESULT_URL}
+
+GOOGLE:
+  gemini-api-key: ${GEMINI_API_KEY}

@@ -5,12 +5,14 @@ import com.dat.backend.datshop.product.mapper.ProductMapper;
 import com.dat.backend.datshop.product.repository.ProductRepository;
 import com.dat.backend.datshop.user.dto.HomeResponse;
 import com.dat.backend.datshop.user.dto.UserResponse;
+import com.dat.backend.datshop.user.dto.UpdateContactRequest;
 import com.dat.backend.datshop.user.entity.User;
 import com.dat.backend.datshop.user.mapper.UserMapper;
 import com.dat.backend.datshop.user.repository.UserRepository;
 import com.dat.backend.datshop.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -29,6 +31,21 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return userMapper.toUserResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateContact(UpdateContactRequest request, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setFullName(request.getName().trim());
+        user.setPhone(request.getPhoneNumber().trim());
+        user.setAddress(request.getAddress().trim());
+        user.setWardName(request.getWardName().trim());
+        user.setDistrictName(request.getDistrictName().trim());
+        user.setProvinceName(request.getProvinceName().trim());
+        return userMapper.toUserResponse(userRepository.save(user));
     }
 
     @Override

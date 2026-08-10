@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CancelDataResponse {
     private String order_code;
-    private String result;
+    private Boolean result;
     private String message;
 }

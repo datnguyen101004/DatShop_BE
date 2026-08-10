@@ -77,7 +77,7 @@ public class CartServiceImpl implements CartService {
 
         // Get all products in cart item
         if (cartItem.isEmpty()) {
-            return null;
+            return List.of();
         }
 
         return cartItem.stream().map(cartItemMapper::mapToCartItemResponse).collect(Collectors.toList());

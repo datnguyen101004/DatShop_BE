@@ -9,6 +9,7 @@ services:
       - "6334:6334"   # gRPC
     volumes:
       - qdrant_data:/qdrant/storage
+    restart: unless-stopped
 
 volumes:
   qdrant_data:

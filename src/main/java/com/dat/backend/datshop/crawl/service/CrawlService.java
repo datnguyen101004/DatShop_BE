@@ -74,7 +74,7 @@ public class CrawlService {
 
         }
         catch (Exception e) {
-            System.out.println(e.getMessage());
+            // System.out.println(e.getMessage());
             throw new RuntimeException("Error while crawling products: " + e.getMessage());
         }
         finally {
@@ -87,7 +87,7 @@ public class CrawlService {
             saveToJsonFile(productResponses);
         }
         catch (IOException e) {
-            System.out.println("Error while saving to JSON file: " + e.getMessage());
+            // System.out.println("Error while saving to JSON file: " + e.getMessage());
             throw new RuntimeException("Error while saving to JSON file: " + e.getMessage());
         }
 

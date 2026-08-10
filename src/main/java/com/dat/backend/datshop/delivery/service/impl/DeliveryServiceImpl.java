@@ -27,6 +27,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,10 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     public DeliveryResponse createDelivery(CreateDeliveryForOrder createDeliveryForOrder) {
 
+        if (deliveryRepository.findByOrderId(createDeliveryForOrder.getOrderId()).isPresent()) {
+            throw new RuntimeException("Delivery already exists for this order");
+        }
+
         // Chỉ cho phép tạo đơn khi đơn hàng trong trạng thái PREPARING
         checkOrderStatus(createDeliveryForOrder.getOrderId());
 
@@ -68,7 +73,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .header("shopId", shopId)
                 .bodyValue(createDeliveryGHNRequest)
                 .exchangeToMono(response -> {
-                    if (response.statusCode().is4xxClientError()) {
+                    if (response.statusCode().isError()) {
                         return response.bodyToMono(String.class)
                                 .flatMap(errorBody -> {
                                     log.error("GHN 4xx error: {}", errorBody);
@@ -80,14 +85,16 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .block();
 
         if (createDeliveryResponse == null) {
-            log.error("Failed to create delivery: response is null");
-            return null;
+            throw new RuntimeException("GHN returned an empty response");
         }
 
         log.info("createDeliveryResponse: {}", createDeliveryResponse);
 
         // Nhận phản hồi từ GHN
         DataResponse dataResponse = createDeliveryResponse.getData();
+        if (dataResponse == null || dataResponse.getOrder_code() == null || dataResponse.getOrder_code().isBlank()) {
+            throw new RuntimeException("GHN did not return a valid delivery order code");
+        }
 
         // Cập nhật trạng thái đơn hàng sang SHIPPING
         Order order = orderRepository.findById(createDeliveryForOrder.getOrderId())
@@ -99,8 +106,8 @@ public class DeliveryServiceImpl implements DeliveryService {
         Delivery delivery = deliveryMapper.createDeliveryRequestToDeliveryEntity(createDeliveryGHNRequest);
         delivery.setDeliveryStatus(DeliveryStatus.PENDING);
         delivery.setGhnOrderCode(dataResponse.getOrder_code());
-        delivery.setUserId(createDeliveryForOrder.getUserId());
-        delivery.setShopId(createDeliveryForOrder.getShopId());
+        delivery.setUserId(order.getUserId());
+        delivery.setShopId(order.getShop().getId());
         delivery.setOrderId(createDeliveryForOrder.getOrderId());
         delivery.setTotalFee((long) dataResponse.getTotal_fee());
 
@@ -139,28 +146,20 @@ public class DeliveryServiceImpl implements DeliveryService {
         String clientOrderCode = "shop_" + orderId;
         String coupon = Optional.ofNullable(order.getCoupon()).map(Coupon::getCode).orElse(null);
         String requiredNote = order.getRequiredNote().toString();
-        String note = order.getNote();
+        String note = createDeliveryForOrder.getNote() == null || createDeliveryForOrder.getNote().isBlank()
+                ? order.getNote()
+                : createDeliveryForOrder.getNote().trim();
 
-        Long userId = createDeliveryForOrder.getUserId();
+        Long userId = order.getUserId();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-        String fromName = user.getFullName();
-        String fromPhone = user.getPhone();
-        String fromAddress = user.getAddress();
-        String fromWardName = user.getWardName();
-        String fromDistrictName = user.getDistrictName();
-        String fromProvinceName = user.getProvinceName();
+        validateDeliveryProfile(user, "Customer");
 
-        Long shopId = createDeliveryForOrder.getShopId();
+        Long shopId = order.getShop().getId();
         User shop = userRepository.findById(shopId)
                 .orElseThrow(() -> new RuntimeException("Shop not found with id: " +
                         shopId));
-        String toName = shop.getFullName();
-        String toPhone = shop.getPhone();
-        String toAddress = shop.getAddress();
-        String toWardName = shop.getWardName();
-        String toDistrictName = shop.getDistrictName();
-        String toProvinceName = shop.getProvinceName();
+        validateDeliveryProfile(shop, "Shop");
 
         // Lấy danh sách các sản phẩm trong đơn hàng
         List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(orderId);
@@ -183,18 +182,18 @@ public class DeliveryServiceImpl implements DeliveryService {
         createDeliveryGHNRequest.setCoupon(coupon);
         createDeliveryGHNRequest.setRequired_note(requiredNote);
         createDeliveryGHNRequest.setNote(note);
-        createDeliveryGHNRequest.setFrom_name(fromName);
-        createDeliveryGHNRequest.setFrom_phone(fromPhone);
-        createDeliveryGHNRequest.setFrom_address(fromAddress);
-        createDeliveryGHNRequest.setFrom_ward_name(fromWardName);
-        createDeliveryGHNRequest.setFrom_district_name(fromDistrictName);
-        createDeliveryGHNRequest.setFrom_province_name(fromProvinceName);
-        createDeliveryGHNRequest.setTo_name(toName);
-        createDeliveryGHNRequest.setTo_phone(toPhone);
-        createDeliveryGHNRequest.setTo_address(toAddress);
-        createDeliveryGHNRequest.setTo_ward_name(toWardName);
-        createDeliveryGHNRequest.setTo_district_name(toDistrictName);
-        createDeliveryGHNRequest.setTo_province_name(toProvinceName);
+        createDeliveryGHNRequest.setFrom_name(shop.getFullName());
+        createDeliveryGHNRequest.setFrom_phone(shop.getPhone());
+        createDeliveryGHNRequest.setFrom_address(shop.getAddress());
+        createDeliveryGHNRequest.setFrom_ward_name(shop.getWardName());
+        createDeliveryGHNRequest.setFrom_district_name(shop.getDistrictName());
+        createDeliveryGHNRequest.setFrom_province_name(shop.getProvinceName());
+        createDeliveryGHNRequest.setTo_name(user.getFullName());
+        createDeliveryGHNRequest.setTo_phone(user.getPhone());
+        createDeliveryGHNRequest.setTo_address(user.getAddress());
+        createDeliveryGHNRequest.setTo_ward_name(user.getWardName());
+        createDeliveryGHNRequest.setTo_district_name(user.getDistrictName());
+        createDeliveryGHNRequest.setTo_province_name(user.getProvinceName());
         createDeliveryGHNRequest.setItems(items);
 
         try {
@@ -207,28 +206,83 @@ public class DeliveryServiceImpl implements DeliveryService {
         return createDeliveryGHNRequest;
     }
 
+    private void validateDeliveryProfile(User user, String label) {
+        List<String> missingFields = new java.util.ArrayList<>();
+        if (user.getFullName() == null || user.getFullName().isBlank()) missingFields.add("name");
+        if (user.getPhone() == null || user.getPhone().isBlank()) missingFields.add("phone");
+        if (user.getAddress() == null || user.getAddress().isBlank()) missingFields.add("address");
+        if (user.getWardName() == null || user.getWardName().isBlank()) missingFields.add("ward");
+        if (user.getDistrictName() == null || user.getDistrictName().isBlank()) missingFields.add("district");
+        if (user.getProvinceName() == null || user.getProvinceName().isBlank()) missingFields.add("province");
+        if (!missingFields.isEmpty()) {
+            throw new RuntimeException(label + " delivery profile is missing: " + String.join(", ", missingFields));
+        }
+    }
+
     // Hủy đơn giao hàng
     @Transactional
     public List<CancelDataResponse> cancelDelivery(CancelDeliveryRequest cancelDeliveryRequest) {
-        // Gọi API GHN để hủy đơn hàng
+        if (cancelDeliveryRequest == null || cancelDeliveryRequest.getOrder_codes() == null) {
+            throw new RuntimeException("At least one GHN order code is required");
+        }
+        List<String> orderCodes = cancelDeliveryRequest.getOrder_codes().stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(code -> !code.isEmpty())
+                .distinct()
+                .toList();
+        if (orderCodes.isEmpty()) {
+            throw new RuntimeException("At least one GHN order code is required");
+        }
+        for (String orderCode : orderCodes) {
+            deliveryRepository.findByGhnOrderCode(orderCode)
+                    .orElseThrow(() -> new RuntimeException(
+                            "Delivery not found for GHN code: " + orderCode
+                                    + ". Use the GHN tracking code, not the DatShop order ID."
+                    ));
+        }
+
+        CancelDeliveryRequest normalizedRequest = CancelDeliveryRequest.builder()
+                .order_codes(orderCodes)
+                .build();
         CancelResponse cancelResponse = webClientConfig.webClient()
                 .post()
                 .uri(ghn_url+"/switch-status/cancel")
                 .header("Content-Type", "application/json")
-                .header("token", ghn_token)
-                .header("shopId", shopId)
-                .bodyValue(cancelDeliveryRequest)
-                .retrieve()
-                .bodyToMono(CancelResponse.class)
+                .header("Token", ghn_token)
+                .header("ShopId", shopId)
+                .bodyValue(normalizedRequest)
+                .exchangeToMono(response -> {
+                    if (response.statusCode().isError()) {
+                        return response.bodyToMono(String.class)
+                                .defaultIfEmpty("No response body")
+                                .flatMap(errorBody -> Mono.error(
+                                        new RuntimeException("GHN cancel failed: " + errorBody)
+                                ));
+                    }
+                    return response.bodyToMono(CancelResponse.class);
+                })
                 .block();
 
-        if (cancelResponse == null ||cancelResponse.getCode() != 200) {
-            throw new RuntimeException("Not found order");
+        if (cancelResponse == null) {
+            throw new RuntimeException("GHN returned an empty cancellation response");
+        }
+        if (cancelResponse.getCode() != 200 || cancelResponse.getData() == null) {
+            throw new RuntimeException("GHN cancel failed: " + cancelResponse.getMessage());
         }
 
-        // Cập nhật trạng thái đơn hàng trong cơ sở dữ liệu
-        updateOrderAndDeliveryStatus(cancelDeliveryRequest.getOrder_codes());
+        List<String> cancelledCodes = cancelResponse.getData().stream()
+                .filter(item -> Boolean.TRUE.equals(item.getResult()))
+                .map(CancelDataResponse::getOrder_code)
+                .toList();
+        if (cancelledCodes.isEmpty()) {
+            String details = cancelResponse.getData().stream()
+                    .map(item -> item.getOrder_code() + ": " + item.getMessage())
+                    .collect(Collectors.joining("; "));
+            throw new RuntimeException("GHN did not cancel the delivery: " + details);
+        }
 
+        updateOrderAndDeliveryStatus(cancelledCodes);
         return cancelResponse.getData();
     }
 
@@ -244,7 +298,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                     .expected_delivery_time(delivery.getExpectedDeliveryTime())
                     .build();
         }
-        return null;
+        throw new RuntimeException("Delivery not found for order: " + orderId);
     }
 
     private void updateOrderAndDeliveryStatus(List<String> orderCodes) {

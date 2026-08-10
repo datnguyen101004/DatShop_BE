@@ -1,9 +1,8 @@
 package com.dat.backend.datshop.chat.service;
 
 import com.dat.backend.datshop.chat.dto.SendMessage;
-
-import java.security.Principal;
+import com.dat.backend.datshop.chat.dto.MessageResponse;
 
 public interface ChatService {
-    String sendMessage(SendMessage sendMessageRequest, String conversationId, String senderEmail);
+    MessageResponse sendMessage(SendMessage sendMessageRequest, String conversationId, String senderEmail);
 }

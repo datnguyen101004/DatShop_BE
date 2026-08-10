@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.parameters.P;
-
 import java.util.List;
 
 @Data
@@ -15,7 +13,7 @@ import java.util.List;
 @Builder
 public class CreateOrderRequest {
     private String note;
-    private Long couponId;
+    private String couponCode;
     @Schema(
             description = "Phương thức thanh toán: COD, BANK_TRANSFER, CREDIT_CARD, ...",
             example = "COD"

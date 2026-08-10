@@ -1,7 +1,9 @@
 package com.dat.backend.datshop.user.controller;
 
 import com.dat.backend.datshop.user.dto.UserResponse;
+import com.dat.backend.datshop.user.dto.UpdateContactRequest;
 import com.dat.backend.datshop.user.service.UserService;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -13,12 +15,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/v1/user")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+@PreAuthorize("hasAnyRole('ADMIN', 'SHOP', 'USER')")
 public class UserController {
     private final UserService userService;
 
@@ -41,6 +45,16 @@ public class UserController {
     public com.dat.backend.datshop.template.ApiResponse<UserResponse> getProfile(Authentication authentication) {
         log.info("Get profile for user: {}", authentication.getName());
         return com.dat.backend.datshop.template.ApiResponse.success(userService.getProfile(authentication.getName()));
+    }
+
+    @PutMapping("/profile/contact")
+    public com.dat.backend.datshop.template.ApiResponse<UserResponse> updateContact(
+            @Valid @RequestBody UpdateContactRequest request,
+            Authentication authentication
+    ) {
+        return com.dat.backend.datshop.template.ApiResponse.success(
+                userService.updateContact(request, authentication.getName())
+        );
     }
 
     @GetMapping("/profile/{id}")

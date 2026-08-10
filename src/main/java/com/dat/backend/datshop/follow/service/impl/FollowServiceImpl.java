@@ -39,11 +39,11 @@ public class FollowServiceImpl implements FollowService {
                 user.getId(), targetId, followType);
 
         if (existingFollow.isPresent()) {
-            // Nếu đã follow, xóa theo dõi
             Follow follow = existingFollow.get();
-            follow.setDeleted(true); // Đánh dấu là đã xóa
+
+            // Đổi giá trị cờ delete (trạng thái)
+            follow.setDeleted(!follow.isDeleted());
             followRepository.save(follow);
-            log.info("User {} has unfollowed target {}", user.getId(), targetId);
             return followMapper.toFollowResponse(follow);
         }
 

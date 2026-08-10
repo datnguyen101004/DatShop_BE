@@ -2,6 +2,7 @@ package com.dat.backend.datshop.chatbot.service;
 
 import com.dat.backend.datshop.chatbot.dto.CreateInformation;
 import com.dat.backend.datshop.chatbot.dto.InformationResponse;
+import com.dat.backend.datshop.chatbot.embedding.EmbeddingService;
 import com.dat.backend.datshop.chatbot.entity.InforType;
 import com.dat.backend.datshop.chatbot.entity.Information;
 import com.dat.backend.datshop.chatbot.mapper.InforMapper;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class InformationService {
     private final InformationRepository informationRepository;
-    private final OllamaService ollamaService;
+    private final EmbeddingService embeddingService;
     private final QdrantService qdrantService;
     private final InforMapper inforMapper;
 
@@ -29,10 +30,10 @@ public class InformationService {
         // Tạo vector embedding thông tin mới
         String textEmbedding = String.format("Type: %s, Name: %s, Description: %s",
                 information.getType(), information.getName(), information.getDescription()); // Ex: "Type: Product, Name: Laptop, Description: A high-performance laptop";
-        double[] vec = ollamaService.generateEmbedding(textEmbedding).block();
+        double[] vec = embeddingService.embedDocument(textEmbedding);
 
         // sau đó gọi service lưu vec vào Qdrant
-        qdrantService.upsertVector(information.getId(), vec);
+        qdrantService.upsertVector(embeddingService.getCollectionName(), information.getId(), vec);
 
         return inforMapper.toInformationResponse(information);
     }

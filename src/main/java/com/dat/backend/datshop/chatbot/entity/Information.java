@@ -24,5 +24,5 @@ public class Information {
 
     private String name; // Tên thông tin
 
-    private InforType type; // Loại thông tin, bao gồm: PRODUCT, DELIVERY, PAYMENT, ORDER
+    private InforType type; // PRODUCT, DELIVERY, PAYMENT, POLICY (ORDER is retained for legacy data)
 }

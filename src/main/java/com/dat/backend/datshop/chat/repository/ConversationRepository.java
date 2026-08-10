@@ -13,5 +13,12 @@ public interface ConversationRepository extends JpaRepository<Conversation, Stri
 
     Optional<Conversation> findByUser1IdAndUser2Id(Long user1Id, Long user2Id);
 
+    Optional<Conversation> findFirstByUser1IdAndUser2IdOrUser1IdAndUser2Id(
+            Long firstUser1Id,
+            Long firstUser2Id,
+            Long secondUser1Id,
+            Long secondUser2Id
+    );
+
     List<Conversation> findByUser1IdOrUser2Id(Long id, Long id1);
 }

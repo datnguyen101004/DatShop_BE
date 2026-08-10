@@ -49,7 +49,23 @@ springdoc:
 
 ollama:
   embed-model: nomic-embed-text
-  chat-model: mistral
+
+ai:
+  chat:
+    gemini:
+      model: ${GEMINI_CHAT_MODEL:gemini-3.6-flash}
+      thinking-level: ${GEMINI_THINKING_LEVEL:minimal}
+  embedding:
+    # Set AI_EMBEDDING_PROVIDER=ollama to use the original local embedding model.
+    provider: ${AI_EMBEDDING_PROVIDER:gemini}
+    # Enable once after changing providers to rebuild vectors from MySQL.
+    reindex-on-startup: ${AI_EMBEDDING_REINDEX_ON_STARTUP:false}
+    gemini:
+      model: ${GEMINI_EMBEDDING_MODEL:gemini-embedding-001}
+      dimension: ${GEMINI_EMBEDDING_DIMENSION:768}
+      collection: ${GEMINI_QDRANT_COLLECTION:chatbot_rag_gemini}
+    ollama:
+      collection: ${OLLAMA_QDRANT_COLLECTION:chatbot_rag}
 
 server:
   port: 8080

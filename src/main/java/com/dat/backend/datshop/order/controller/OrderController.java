@@ -34,4 +34,12 @@ public class OrderController {
     public ApiResponse<List<ShopOrderResponse>> getAllOrdersForShop(Authentication authentication) {
         return ApiResponse.success(orderService.getAllOrdersForShop(authentication.getName()));
     }
+
+    @PostMapping("/shop/{orderId}/confirm")
+    public ApiResponse<ShopOrderResponse> confirmOrder(
+            @PathVariable Long orderId,
+            Authentication authentication
+    ) {
+        return ApiResponse.success(orderService.confirmOrder(orderId, authentication.getName()));
+    }
 }

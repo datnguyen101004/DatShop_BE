@@ -17,6 +17,9 @@ public class UserResponse {
     private String name;
     private String phoneNumber;
     private String address;
+    private String wardName;
+    private String districtName;
+    private String provinceName;
     private boolean isActive;
     private String role;
     private Double balance;

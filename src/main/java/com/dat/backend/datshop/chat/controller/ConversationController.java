@@ -5,7 +5,6 @@ import com.dat.backend.datshop.chat.dto.ConversationResponse;
 import com.dat.backend.datshop.chat.service.ConversationService;
 import com.dat.backend.datshop.template.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +19,16 @@ public class ConversationController {
     @PostMapping("/create")
     public ApiResponse<ConversationResponse> createRoom(@RequestBody Long receiverId, Authentication authentication) {
         return ApiResponse.success(conversationService.getOrCreateConservation(receiverId, authentication.getName()));
+    }
+
+    @PostMapping("/support")
+    public ApiResponse<ConversationResponse> getOrCreateSupportConversation(Authentication authentication) {
+        return ApiResponse.success(conversationService.getOrCreateSupportConversation(authentication.getName()));
+    }
+
+    @GetMapping("/support/inbox")
+    public ApiResponse<List<ConversationResponse>> getSupportInbox(Authentication authentication) {
+        return ApiResponse.success(conversationService.getSupportInbox(authentication.getName()));
     }
 
     @GetMapping("/all")

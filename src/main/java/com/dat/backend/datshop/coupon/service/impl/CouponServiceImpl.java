@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,9 +40,8 @@ public class CouponServiceImpl implements CouponService {
         String expirationDateStr = createCoupon.getExpirationDate();
         String couponType = createCoupon.getCouponType().toUpperCase();
 
-        // Chuyển expirationDate từ String sang LocalDate
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        LocalDate expirationDate = LocalDate.parse(expirationDateStr, dateFormatter);
+        // Hỗ trợ cả định dạng ISO từ input type="date" và định dạng cũ dd-MM-yyyy.
+        LocalDate expirationDate = parseExpirationDate(expirationDateStr);
         // Chuyển LocalDate sang LocalDateTime
         LocalDateTime expirationDateTime = expirationDate.atStartOfDay();
 
@@ -70,6 +70,23 @@ public class CouponServiceImpl implements CouponService {
         if (!coupons.isEmpty()) {
             return coupons.stream().map(couponMapper::toCouponResponse).collect(Collectors.toList());
         }
-        return null;
+        return List.of();
+    }
+
+    private LocalDate parseExpirationDate(String value) {
+        if (value == null || value.isBlank()) {
+            throw new RuntimeException("Expiration date is required");
+        }
+
+        String dateOnly = value.contains("T") ? value.substring(0, value.indexOf('T')) : value;
+        try {
+            return LocalDate.parse(dateOnly, DateTimeFormatter.ISO_LOCAL_DATE);
+        } catch (DateTimeParseException ignored) {
+            try {
+                return LocalDate.parse(dateOnly, DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+            } catch (DateTimeParseException exception) {
+                throw new RuntimeException("Expiration date must use yyyy-MM-dd or dd-MM-yyyy format");
+            }
+        }
     }
 }

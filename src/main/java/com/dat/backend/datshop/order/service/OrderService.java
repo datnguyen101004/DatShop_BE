@@ -16,4 +16,6 @@ public interface OrderService {
     Map<String, String> paymentCallbackHandler(HttpServletRequest request);
 
     List<ShopOrderResponse> getAllOrdersForShop(String name);
+
+    ShopOrderResponse confirmOrder(Long orderId, String name);
 }

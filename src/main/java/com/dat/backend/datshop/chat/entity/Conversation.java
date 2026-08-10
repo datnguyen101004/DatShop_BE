@@ -21,5 +21,6 @@ public class Conversation {
     private Long user2Id; // ID của người dùng 2
 
     @OneToMany(mappedBy = "conversation")
+    @OrderBy("sentAt ASC, id ASC")
     private List<Message> listMessages;
 }

@@ -67,8 +67,10 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new RuntimeException("Information not found with id: " + createOrderRequest.getProductItems().getFirst().getProductId()));
         newOrder.setShop(product1.getAuthor());
 
-        // Chuyển coupon từ id sang entity nếu có
-        Long couponId = createOrderRequest.getCouponId();
+        String couponCode = Optional.ofNullable(createOrderRequest.getCouponCode())
+                .map(String::trim)
+                .filter(code -> !code.isEmpty())
+                .orElse(null);
         // Tính toán tổng giá trị đơn hàng
         long totalPrice = createOrderRequest.getProductItems().stream()
                 .mapToLong(item -> {
@@ -79,30 +81,22 @@ public class OrderServiceImpl implements OrderService {
                 .sum();
 
         // Kiểm tra xem có coupon không
-        if (couponId != null) {
-            Optional<Coupon> couponOp = couponRepository.findById(couponId);
+        if (couponCode != null) {
+            Coupon coupon = couponRepository.findByCodeIgnoreCase(couponCode)
+                    .orElseThrow(() -> new RuntimeException("Coupon code not found"));
 
-            // Kiểm tra xem coupon có tồn tại không
-            if (couponOp.isPresent()) {
-                // Kiểm tra xem coupon có hơp lệ không
-                if (!couponOp.get().getIsActive() || couponOp.get().getQuantity() <= 0) {
-                    throw new RuntimeException("Coupon is not valid");
-                }
+            if (!Boolean.TRUE.equals(coupon.getIsActive())
+                    || coupon.getQuantity() <= 0
+                    || coupon.getExpirationDate() == null
+                    || coupon.getExpirationDate().isBefore(LocalDateTime.now())) {
+                throw new RuntimeException("Coupon is expired or no longer available");
+            }
 
-                // Nếu coupon hợp lệ, gán vào đơn hàng
-                Coupon coupon = couponOp.get();
-                newOrder.setCoupon(coupon);
-
-                // Tính toán tổng giá trị đơn hàng sau khi áp dụng coupon
-                if (coupon.getCouponType() == CouponType.PERCENT) {
-                    // Giảm giá theo phần trăm
-                    totalPrice = (long) (totalPrice - (totalPrice * coupon.getDiscountAmount() / 100));
-                } else if (coupon.getCouponType() == CouponType.MONEY) {
-                    // Giảm giá theo giá trị cố định
-                    totalPrice = (long) (totalPrice - coupon.getDiscountAmount());
-                }
-            } else {
-                log.warn("Coupon with id {} not found", couponId);
+            newOrder.setCoupon(coupon);
+            if (coupon.getCouponType() == CouponType.PERCENT) {
+                totalPrice = (long) (totalPrice - (totalPrice * coupon.getDiscountAmount() / 100));
+            } else if (coupon.getCouponType() == CouponType.MONEY) {
+                totalPrice = Math.max(0, (long) (totalPrice - coupon.getDiscountAmount()));
             }
         }
 
@@ -140,14 +134,6 @@ public class OrderServiceImpl implements OrderService {
             orderResponse.setProductItems(createOrderRequest.getProductItems());
             orderResponse.setPaymentUrl(paymentUrl);
             return orderResponse;
-        } else {
-            // Nếu không phải chuyển khoản, lưu trạng thái là PREPARING
-            savedOrder.setOrderStatus(OrderStatus.PREPARING);
-
-            // Giảm số lượng coupon nếu có
-            if (savedOrder.getCoupon() != null) {
-                applyCouponUsage(savedOrder.getCoupon());
-            }
         }
 
         // Chuyển đổi sang DTO để trả về
@@ -315,6 +301,55 @@ public class OrderServiceImpl implements OrderService {
             shopOrderResponse.setProductItems(productItems);
             return shopOrderResponse;
         }).toList();
+    }
+
+    @Override
+    @Transactional
+    public ShopOrderResponse confirmOrder(Long orderId, String name) {
+        User shop = userRepository.findByEmail(name)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+
+        if (order.getShop() == null || !Objects.equals(order.getShop().getId(), shop.getId())) {
+            throw new RuntimeException("This order does not belong to your shop");
+        }
+        if (order.getOrderStatus() == OrderStatus.WAITING_FOR_PAYMENT) {
+            throw new RuntimeException("The order is still waiting for payment");
+        }
+        if (order.getOrderStatus() == OrderStatus.CANCEL
+                || order.getOrderStatus() == OrderStatus.SUCCESS
+                || order.getOrderStatus() == OrderStatus.SHIPPING) {
+            throw new RuntimeException("Cannot confirm order with status: " + order.getOrderStatus());
+        }
+
+        if (order.getOrderStatus() == OrderStatus.PENDING) {
+            List<OrderItem> orderItems = orderItemRepository.findAllByOrderId(orderId);
+            for (OrderItem item : orderItems) {
+                Product product = productRepository.findById(item.getProductId())
+                        .orElseThrow(() -> new RuntimeException("Product not found with id: " + item.getProductId()));
+                if (product.getStockQuantity() < item.getQuantity()) {
+                    throw new RuntimeException("Not enough stock for product: " + product.getName());
+                }
+                product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
+                productRepository.save(product);
+            }
+
+            if (order.getCoupon() != null) {
+                applyCouponUsage(order.getCoupon());
+            }
+            reduceCartItems(order.getUserId(), orderItems);
+            order.setOrderStatus(OrderStatus.PREPARING);
+            orderRepository.save(order);
+        }
+
+        List<ProductItem> productItems = orderItemRepository.findAllByOrderId(orderId)
+                .stream()
+                .map(orderMapper::toProductItemDto)
+                .toList();
+        ShopOrderResponse response = orderMapper.toShopOrderResponse(order);
+        response.setProductItems(productItems);
+        return response;
     }
 
     // Giảm số lượng sản phẩm trong giỏ hàng

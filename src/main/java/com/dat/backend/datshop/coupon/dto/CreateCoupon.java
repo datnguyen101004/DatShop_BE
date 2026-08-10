@@ -18,8 +18,8 @@ public class CreateCoupon {
     private double discountAmount;
     private int quantity;
     @Schema(
-            description = "Định dạng: dd-MM-yyyy",
-            example = "31-12-2025"
+            description = "Định dạng: yyyy-MM-dd hoặc dd-MM-yyyy",
+            example = "2026-12-31"
     )
     private String expirationDate;
     @Schema(

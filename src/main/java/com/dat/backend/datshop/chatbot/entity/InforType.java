@@ -4,5 +4,6 @@ public enum InforType {
     PRODUCT,
     PAYMENT,
     DELIVERY,
-    ORDER
+    POLICY,
+    ORDER // Legacy value kept for existing database records.
 }
